@@ -1,1 +1,3 @@
-cl // class B
+namespace G{
+
+}

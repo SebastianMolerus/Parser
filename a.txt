@@ -1,9 +1,1 @@
-   // class LOL
-
-class A
-{
-   void SomeMethod(params);
-}
-
-
 cl // class B

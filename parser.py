@@ -12,6 +12,7 @@ class Token(enum.Enum):
     tok_closing_bracket =   8,    # }
     tok_params_begin    =   9,    # (
     tok_params_end      =   10    # )
+    tok_EOF             =   11
 
 class CharStream:
     def __init__(self):
@@ -22,7 +23,7 @@ class CharStream:
     
     def pop(self):
         if self.isEmpty():
-            raise Exception("EOF")
+            raise Exception("Popped empty CharStream")
         self.lastChar = self.buffer.pop(0)
         return self.lastChar
 
@@ -34,8 +35,17 @@ class CharStream:
 
 
 class Parser:
-    def __init__(self, fileName):
+    def __init__(self, fileName = None, Text = None):
         self.cs = CharStream()
+
+        if Text and fileName:
+            raise Exception("Defined two resources of data")
+
+        if Text:
+            for i, v in enumerate(Text): 
+                self.cs.append(v)
+            return
+ 
         with open(fileName) as fileobj:
             for line in fileobj:  
                 for ch in line: 
@@ -85,19 +95,3 @@ class Parser:
             return Token.tok_params_end
 
         return Token.tok_identifier
-
-
-
-        
-
-
-
-
-
-try:
-    p = Parser('a.txt')
-    while True:
-        tok = p.GetToken()
-except Exception as ex:
-    print ex.message
-print "End"

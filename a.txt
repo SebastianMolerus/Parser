@@ -1,13 +1,13 @@
-namespace G{
+namespace G{ }
 namespace F{
-    class A{
 
 
-    }
 
-    class B{
-        
-    }
 
 }
+
+namespace A1{
+
 }
+
+

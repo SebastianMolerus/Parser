@@ -1,108 +1,87 @@
 from parsing import Parser
 from parsing import Token
-from element import element
+from nodes import namespaceNode
 
 class AbstractTreeBuilder:
 
     def __init__(self, file):
         self.p = Parser(fileName=file)
+        self.fifo = []
 
     def GetNextToken(self):
-        self.currentToken = self.p.GetToken()
+
+        if len(self.fifo) > 0:
+            self.currentToken = self.fifo.pop(0)
+        else:
+            self.currentToken = self.p.GetToken()
         return self.currentToken
 
-    def ProcessNamespace(self, elem):
+    def PushToken(self, token):
+        self.fifo.insert(0, token)
 
+    def GetNextNode(self):
+
+        self.GetNextToken()
+        if self.currentToken == Token.tok_namespace:
+            return self.ParseNamespace()
+        if self.currentToken == Token.tok_class:
+            return self.ParseClass()
+
+
+    def ParseNamespace(self):
+
+        # we have "namespace" already
+        
+        # consume identifier
         if self.GetNextToken() != Token.tok_identifier:
-            print "Expected identifier after namespace declaration."
+            raise Exception("Identifier expected after namespace keyword")
 
-        identifier_of_namespace = "namespace "
-        identifier_of_namespace+=self.p.identifier
+        # we have identifier
+        n = namespaceNode(self.p.identifier)
 
+        # opening bracket consumed
         if self.GetNextToken() != Token.tok_opening_bracket:
-            print "Expected { after namespace identifier."
+            raise Exception("No opening brackets after namespace identifier")
 
-        if self.GetNextToken() != Token.tok_closing_bracket:
+        # currentToken == token.opening_brackets
 
-            # we are in some element already
-            if elem:
-                newElement = element(identifier_of_namespace)
-                elem.addElement(newElement)
-                self.Scanner(newElement)
-            # this is opening namespace
-            else:
-                self.lastElement = element(identifier_of_namespace)
-                self.Scanner(self.lastElement)
+        # empty namespace
+        if self.GetNextToken() == Token.tok_closing_bracket:
+            return n
+     
+        # we have something not closing
+        self.PushToken(self.currentToken)
 
-            if self.GetNextToken() != Token.tok_closing_bracket:
-                print "Expected } after namespace end."
+        # while not closing bracket add more children
+        while self.GetNextToken() != Token.tok_closing_bracket:
+            self.PushToken(self.currentToken)
+            n.addChild(self.GetNextNode())
 
-        else:
-            if elem:
-                elem.addElement(element(identifier_of_namespace))
-            
+        return n
 
-    def ProcessClass(self, elem):
 
+
+    def ParseClass(self):
+        # we have "class" already
+        
+        # consume identifier
         if self.GetNextToken() != Token.tok_identifier:
-            print "Expected identifier after class declaration."
+            raise Exception("Identifier expected after class keyword")
 
-        identifier_of_class = "class "
-        identifier_of_class += self.p.identifier
+        # we have identifier
+        c = classNode(self.p.identifier)
 
-        # forwarded class
-        if self.GetNextToken() == Token.tok_semicolon:
-            if elem:
-                elem.addElement("forwaded "+ identifier_of_class)
-                return
-        
-        # derived classes
-        if self.currentToken == Token.tok_colon:
-            while self.GetNextToken() != Token.tok_opening_bracket:
-                pass
-            self.GetNextToken() # eat opening brackets
+        # opening bracket consumed
+        if self.GetNextToken() != Token.tok_opening_bracket:
+            raise Exception("No opening brackets after namespace identifier")
 
-        if self.GetNextToken() != Token.tok_closing_bracket:
-
-            # we have a class body
-            # we are in some element already
-            if elem:
-                newElement = element(identifier_of_class)
-                elem.addElement(newElement)
-                self.Scanner(newElement)
-            # this is first class
-            else:
-                self.lastElement = element(identifier_of_class)
-                self.Scanner(self.lastElement)
-
-            if self.GetNextToken() != Token.tok_closing_bracket:
-                print "Expected } after namespace end."
+            # TODO
 
 
-        else:
-            # we dont have class body
-            if elem:
-                elem.addElement(element(identifier_of_class))
-        
+a = AbstractTreeBuilder('a.txt')
 
+node = a.GetNextNode()
+node2 = a.GetNextNode()
+node3 = a.GetNextNode()
 
-        
-
-    def Scanner(self, elem = None):
-
-        if self.currentToken==Token.tok_namespace:
-            self.ProcessNamespace(elem)
-        if self.currentToken==Token.tok_class:
-            self.ProcessClass(elem)
-
-
-    def DoWork(self):
-        while True:
-            self.GetNextToken()
-            self.Scanner()
-            e = self.lastElement
-            print "Iteration"
-
-
-a = AbstractTreeBuilder("a.txt")
-a.DoWork()
+print "end"

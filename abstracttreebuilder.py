@@ -1,32 +1,39 @@
 from parsing import Parser
 from parsing import Token
 from nodes import namespaceNode
+from nodes import classNode
 
 class AbstractTreeBuilder:
 
     def __init__(self, file):
         self.p = Parser(fileName=file)
-        self.fifo = []
+        self.lifo = []
+        self.lastNode = None
 
     def GetNextToken(self):
 
-        if len(self.fifo) > 0:
-            self.currentToken = self.fifo.pop(0)
+        if len(self.lifo) > 0:
+            self.currentToken = self.lifo.pop(0)
         else:
             self.currentToken = self.p.GetToken()
         return self.currentToken
 
     def PushToken(self, token):
-        self.fifo.insert(0, token)
+        self.lifo.insert(0, token)
 
     def GetNextNode(self):
 
-        self.GetNextToken()
-        if self.currentToken == Token.tok_namespace:
-            return self.ParseNamespace()
-        if self.currentToken == Token.tok_class:
-            return self.ParseClass()
+        if self.GetNextToken() == Token.tok_eof:
+            return None
 
+        if self.currentToken == Token.tok_namespace:
+            self.lastNode = self.ParseNamespace()
+        if self.currentToken == Token.tok_class:
+            self.lastNode = self.ParseClass()
+        if self.currentToken == Token.tok_struct:
+            self.lastNode = self.ParseClass()
+
+        return self.lastNode
 
     def ParseNamespace(self):
 
@@ -49,10 +56,15 @@ class AbstractTreeBuilder:
         if self.GetNextToken() == Token.tok_closing_bracket:
             return n
      
-        # we have something not closing
+        # we have something
+        # check for eof
+        if self.currentToken == Token.tok_eof:
+            raise Exception("EOF before namespace closing bracket")
+
+        # return something to stream
         self.PushToken(self.currentToken)
 
-        # while not closing bracket add more children
+        # continue parsing, consume closing bracket
         while self.GetNextToken() != Token.tok_closing_bracket:
             self.PushToken(self.currentToken)
             n.addChild(self.GetNextNode())
@@ -71,17 +83,16 @@ class AbstractTreeBuilder:
         # we have identifier
         c = classNode(self.p.identifier)
 
-        # opening bracket consumed
-        if self.GetNextToken() != Token.tok_opening_bracket:
-            raise Exception("No opening brackets after namespace identifier")
+        
 
-            # TODO
+        
 
 
 a = AbstractTreeBuilder('a.txt')
 
-node = a.GetNextNode()
-node2 = a.GetNextNode()
-node3 = a.GetNextNode()
+nodes = []
+
+while a.GetNextNode():
+    nodes.append(a.lastNode)
 
 print "end"

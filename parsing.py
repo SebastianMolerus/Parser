@@ -12,11 +12,13 @@ class Token(enum.Enum):
     tok_closing_bracket =   8,    # }
     tok_params_begin    =   9,    # (
     tok_params_end      =   10,   # )
-    tok_underscore      =   11,   # _
-    tok_public          =   12,
-    tok_private         =   13,
-    tok_protected       =   14,
-    tok_comma           =   15    # ,
+    tok_public          =   11,
+    tok_private         =   12,
+    tok_protected       =   13,
+    tok_comma           =   14,   # ,
+    tok_eof             =   15,
+    tok_ref             =   16,    # &,
+    tok_star            =   17     # *
 
 class CharStream:
     def __init__(self):
@@ -27,7 +29,7 @@ class CharStream:
     
     def pop(self):
         if self.isEmpty():
-            raise Exception("Popped empty CharStream")
+            raise Exception("Pop on empty CharStream")
         self.lastChar = self.buffer.pop(0)
         return self.lastChar
 
@@ -48,12 +50,24 @@ class Parser:
         if Text:
             for i, v in enumerate(Text): 
                 self.cs.append(v)
+            self.cs.append('\n')
+            self.cs.append(' ')
+            self.cs.append('e')
+            self.cs.append('0')
+            self.cs.append('f')
+            self.cs.append('$')
             return
  
         with open(fileName) as fileobj:
             for line in fileobj:  
                 for ch in line: 
                     self.cs.append(ch)
+            self.cs.append('\n')
+            self.cs.append(' ')
+            self.cs.append('e')
+            self.cs.append('0')
+            self.cs.append('f')
+            self.cs.append('$')
 
 
     def GetToken(self):
@@ -64,8 +78,8 @@ class Parser:
             self.identifier = self.cs.pop()
 
         #process letters
-        while self.cs.lastChar.isalnum():
-            if self.cs.pop().isalnum():
+        while self.cs.lastChar.isalnum() or self.cs.lastChar == r'_':
+            if self.cs.pop().isalnum() or self.cs.lastChar == r'_':
                 self.identifier+=self.cs.lastChar
             else:
                 self.cs.push(self.cs.lastChar)
@@ -98,8 +112,6 @@ class Parser:
             return Token.tok_params_begin
         if self.identifier == r")":
             return Token.tok_params_end
-        if self.identifier == r"_":
-            return Token.tok_underscore
         if self.identifier == r"public":
             return Token.tok_public
         if self.identifier == r"private":
@@ -108,5 +120,12 @@ class Parser:
             return Token.tok_protected
         if self.identifier == r",":
             return Token.tok_comma
+        if self.identifier == r"*":
+            return Token.tok_star
+        if self.identifier == r"&":
+            return Token.tok_ref
+
+        if self.identifier == r"e0f":
+            return Token.tok_eof
 
         return Token.tok_identifier

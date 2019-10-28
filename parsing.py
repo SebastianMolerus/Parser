@@ -15,10 +15,11 @@ class Token(enum.Enum):
     tok_public          =   11,
     tok_private         =   12,
     tok_protected       =   13,
-    tok_comma           =   14,   # ,
+    tok_comma           =   14,    # ,
     tok_eof             =   15,
     tok_ref             =   16,    # &,
     tok_star            =   17     # *
+    tok_preproc         =   18     # #
 
 class CharStream:
     def __init__(self):
@@ -77,14 +78,14 @@ class Parser:
         while self.identifier.isspace():
             self.identifier = self.cs.pop()
 
-        #process letters
+        #process alnums
         while self.cs.lastChar.isalnum() or self.cs.lastChar == r'_':
             if self.cs.pop().isalnum() or self.cs.lastChar == r'_':
                 self.identifier+=self.cs.lastChar
             else:
                 self.cs.push(self.cs.lastChar)
 
-        #process comments
+        #ignore comments
         if self.cs.lastChar == '/':
             if self.cs.pop() == '/':
                 while self.cs.pop() != '\n':
@@ -92,6 +93,12 @@ class Parser:
                 return self.GetToken()
             else:
                 raise Exception("Expected / after /.")
+
+        #ignore preproc directives
+        if self.cs.lastChar == '#':
+            while self.cs.pop() != '\n':
+                pass
+            return self.GetToken()
 
         
         if self.identifier == r"namespace":

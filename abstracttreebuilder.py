@@ -2,6 +2,7 @@ from parsing import Parser
 from parsing import Token
 from nodes import namespaceNode
 from nodes import classNode
+from nodes import forwardedClassNode
 
 class AbstractTreeBuilder:
 
@@ -9,6 +10,7 @@ class AbstractTreeBuilder:
         self.p = Parser(fileName=file)
         self.lifo = []
         self.lastNode = None
+        self.currentToken = None
 
     def GetNextToken(self):
 
@@ -23,17 +25,32 @@ class AbstractTreeBuilder:
 
     def GetNextNode(self):
 
-        if self.GetNextToken() == Token.tok_eof:
-            return None
+        self.lastNode = None
+
+        while self.GetNextToken() != Token.tok_eof:
+
+            if self.currentToken == Token.tok_semicolon:
+                return self.GetNextNode()
+
+            if self.currentToken == Token.tok_closing_bracket:
+                self.PushToken(self.currentToken)
+                return None
+            
+            if self.currentToken == Token.tok_class:
+                break
+            if self.currentToken == Token.tok_namespace:
+                break
 
         if self.currentToken == Token.tok_namespace:
             self.lastNode = self.ParseNamespace()
         if self.currentToken == Token.tok_class:
             self.lastNode = self.ParseClass()
-        if self.currentToken == Token.tok_struct:
-            self.lastNode = self.ParseClass()
+
 
         return self.lastNode
+
+    def TryGetMethod(self):
+
 
     def ParseNamespace(self):
 
@@ -69,30 +86,55 @@ class AbstractTreeBuilder:
             self.PushToken(self.currentToken)
             n.addChild(self.GetNextNode())
 
+        if None in n.childNodes:
+            n.childNodes.remove(None)
+
         return n
 
 
 
     def ParseClass(self):
-        # we have "class" already
+        # we have "class/struct" already
         
         # consume identifier
         if self.GetNextToken() != Token.tok_identifier:
             raise Exception("Identifier expected after class keyword")
 
         # we have identifier
-        c = classNode(self.p.identifier)
+        objectName = self.p.identifier
+
+        # forwarded class
+        if self.GetNextToken() == Token.tok_semicolon:
+            return forwardedClassNode(objectName)
+
+        # not forwarded class
+        # move after opening bracket
+        while self.currentToken != Token.tok_opening_bracket:
+            self.GetNextToken()
+
+        # currentToken == token.opening_brackets
+
+        # empty class
+        if self.GetNextToken() == Token.tok_closing_bracket:
+            return classNode(objectName)
+
+        # we have something
+        # check for eof
+        if self.currentToken == Token.tok_eof:
+            raise Exception("EOF before class closing bracket")
+
+        # return something to stream
+        self.PushToken(self.currentToken)
+
+        c = classNode(objectName)
+        # continue parsing, consume closing brackets
+        while self.GetNextToken() != Token.tok_closing_bracket:
+            self.PushToken(self.currentToken)
+            c.addChild(self.GetNextNode())
+
+        if None in c.childNodes:
+            c.childNodes.remove(None)
+
+        return c
 
         
-
-        
-
-
-a = AbstractTreeBuilder('a.txt')
-
-nodes = []
-
-while a.GetNextNode():
-    nodes.append(a.lastNode)
-
-print "end"

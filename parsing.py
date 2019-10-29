@@ -18,8 +18,9 @@ class Token(enum.Enum):
     tok_comma           =   14,    # ,
     tok_eof             =   15,
     tok_ref             =   16,    # &,
-    tok_star            =   17     # *
-    tok_preproc         =   18     # #
+    tok_star            =   17,     # *
+    tok_preproc         =   18,     # #
+    tok_tilde           =   19     # ~
 
 class CharStream:
     def __init__(self):
@@ -94,13 +95,12 @@ class Parser:
             else:
                 raise Exception("Expected / after /.")
 
-        #ignore preproc directives
-        if self.cs.lastChar == '#':
+        #ignore preproc directives, friends
+        if self.cs.lastChar == '#' or self.identifier == 'friend':
             while self.cs.pop() != '\n':
                 pass
             return self.GetToken()
-
-        
+    
         if self.identifier == r"namespace":
             return Token.tok_namespace
         if self.identifier == r"class":
@@ -131,6 +131,8 @@ class Parser:
             return Token.tok_star
         if self.identifier == r"&":
             return Token.tok_ref
+        if self.identifier == r"~":
+            return Token.tok_tilde
 
         if self.identifier == r"e0f":
             return Token.tok_eof

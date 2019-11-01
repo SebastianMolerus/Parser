@@ -6,11 +6,22 @@ from nodes import forwardedClassNode
 
 class AbstractTreeBuilder:
 
-    def __init__(self, file):
-        self.p = Parser(fileName=file)
+    def __init__(self, parser):
+        self.p = parser
         self.lifo = []
         self.lastNode = None
         self.currentToken = None
+
+
+    @classmethod
+    def FromTxt(cls, txt):
+        p = Parser(Text=txt)
+        return cls(p)
+
+    @classmethod
+    def FromFile(cls, file):
+        p = Parser(fileName=file)
+        return cls(p)
 
     def GetNextToken(self):
 
@@ -20,8 +31,9 @@ class AbstractTreeBuilder:
             self.currentToken = self.p.GetToken()
         return self.currentToken
 
-    def PushToken(self, token):
+    def ReturnToken(self, token):
         self.lifo.insert(0, token)
+
 
     def GetNextNode(self):
 
@@ -33,13 +45,16 @@ class AbstractTreeBuilder:
                 return self.GetNextNode()
 
             if self.currentToken == Token.tok_closing_bracket:
-                self.PushToken(self.currentToken)
+                self.ReturnToken(self.currentToken)
                 return None
             
             if self.currentToken == Token.tok_class:
                 break
             if self.currentToken == Token.tok_namespace:
                 break
+            self.lastNode = self.TryGetMethod()
+            if self.lastNode is not None:
+                return self.lastNode
 
         if self.currentToken == Token.tok_namespace:
             self.lastNode = self.ParseNamespace()
@@ -50,6 +65,30 @@ class AbstractTreeBuilder:
         return self.lastNode
 
     def TryGetMethod(self):
+
+        token_buff = []
+        while self.GetNextToken() != Token.tok_eof:
+
+            if self.currentToken == Token.tok_semicolon:
+                break
+
+            token_buff.insert(0, [self.currentToken, self.p.identifier])
+
+        for token,ident in token_buff:
+            # we have params
+            if token == Token.tok_params_begin:
+                full_method = ""
+                for token,ident in token_buff:
+                    full_method+=ident
+
+                print full_method
+
+            
+
+        
+        for token, ident in token_buff:
+            self.ReturnToken(token)
+        return None
 
 
     def ParseNamespace(self):
@@ -79,11 +118,11 @@ class AbstractTreeBuilder:
             raise Exception("EOF before namespace closing bracket")
 
         # return something to stream
-        self.PushToken(self.currentToken)
+        self.ReturnToken(self.currentToken)
 
         # continue parsing, consume closing bracket
         while self.GetNextToken() != Token.tok_closing_bracket:
-            self.PushToken(self.currentToken)
+            self.ReturnToken(self.currentToken)
             n.addChild(self.GetNextNode())
 
         if None in n.childNodes:
@@ -124,12 +163,12 @@ class AbstractTreeBuilder:
             raise Exception("EOF before class closing bracket")
 
         # return something to stream
-        self.PushToken(self.currentToken)
+        self.ReturnToken(self.currentToken)
 
         c = classNode(objectName)
         # continue parsing, consume closing brackets
         while self.GetNextToken() != Token.tok_closing_bracket:
-            self.PushToken(self.currentToken)
+            self.ReturnToken(self.currentToken)
             c.addChild(self.GetNextNode())
 
         if None in c.childNodes:

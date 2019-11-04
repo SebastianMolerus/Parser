@@ -8,19 +8,26 @@ class Test_ATB(unittest.TestCase):
     def GetAllNodes(self, builder):
         n = []
         while builder.GetNextNode():
-            n.append(builder.lastNode)
+            n.append(builder._lastNode)
         return n
 
-    def test_test(self):
-        a = AbstractTreeBuilder('test_classes/ae.txt')
+    def test_ClassInsindeNamespace(self):
+        a = AbstractTreeBuilder.FromTxt(r"namespace Z{class A{};}")
         n = self.GetAllNodes(a)
-        print "Something"
+        self.assertTrue(len(n) == 1)
+        self.assertTrue(n[0].name == "Z")
+        self.assertTrue(n[0].childNodes[0].name == "A")
 
-    def test_GettingMethod(self):
-        a = AbstractTreeBuilder.FromTxt('void SomeMethod();')
+    def test_ClassWithoutEndingbracket(self):
+        a = AbstractTreeBuilder.FromTxt(r"namespace Z{class A{}}")     
+        with self.assertRaises(Exception) as ex:
+            n = self.GetAllNodes(a)
+
+    def test_SimplyMethod(self):
+        a = AbstractTreeBuilder.FromTxt(r"void foo();")     
         n = self.GetAllNodes(a)
-        self.assertTrue(len(n) > 0)
-
+        self.assertTrue(len(n) == 1)
+        self.assertTrue(n[0].name == 'foo')
 
 class Test_Parser(unittest.TestCase):
 

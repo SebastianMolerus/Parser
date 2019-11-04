@@ -7,6 +7,9 @@ class Node:
     def addChild(self, node):
         self.childNodes.append(node)
 
+    def getChildren(self):
+        return self.childNodes
+
 class classNode(Node):
     pass
 
@@ -16,6 +19,6 @@ class forwardedClassNode(Node):
 class namespaceNode(Node):
     pass
     
-class methodNode(Node):
+class functionNode(Node):
     pass
     

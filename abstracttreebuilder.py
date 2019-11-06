@@ -2,15 +2,14 @@ from parsing import Parser
 from parsing import Token
 from nodes import namespaceNode
 from nodes import classNode
-from nodes import forwardedClassNode
 from nodes import functionNode
 
 class AbstractTreeBuilder:
 
     def __init__(self, parser):
         self._p = parser
-        self._tokenBuffer = []
-        self._currentToken = None
+        self._expressionBuffer = []
+        self._currentExpression = None
         self._lastNode = None
 
     @classmethod
@@ -23,71 +22,104 @@ class AbstractTreeBuilder:
         _p = Parser(fileName=file)
         return cls(_p)
 
-    def _GetNextToken(self):
+    def _GetExpression(self):
 
-        if len(self._tokenBuffer) > 0:
-            self._currentToken = self._tokenBuffer.pop(0)
+        if len(self._expressionBuffer) > 0:
+            self._currentExpression = self._expressionBuffer.pop(0)
         else:
-            self._currentToken = self._p.GetToken()
-        return self._currentToken
+            self._currentExpression = expr(self._p.GetToken(), self._p.identifier)
+        return self._currentExpression
 
-    def _ReturnToken(self, token):
-        self._tokenBuffer.insert(0, token)
+    def _ReturnExpr(self, expression):
+        self._expressionBuffer.insert(0, expression)
 
 
     def GetNextNode(self):
 
-        while self._GetNextToken() != Token.tok_eof:      
+        while self._GetExpression().token() != Token.tok_eof:      
 
-            if self._currentToken == Token.tok_class:
+            if self._currentExpression.token() == Token.tok_class:
                 self._lastNode =  self.ParseClass()
                 return self._lastNode
-            if self._currentToken == Token.tok_namespace:
+            if self._currentExpression.token() == Token.tok_namespace:
                 self._lastNode = self.ParseNamespace()
                 return self._lastNode
 
+            self._ReturnExpr(self._currentExpression)
             self._lastNode = self.TryParseFunction()
             if self._lastNode is not None:
                 return self._lastNode
-
-        return None
+            else:
+                return self.GetNextNode()
 
 
     def TryParseFunction(self):
-        pass
+    
+        consumedExpressions = []
+
+        # eating tokens till ;
+        while self._GetExpression().token() != Token.tok_eof:
+
+            if self._currentExpression.token() != Token.tok_semicolon:
+                consumedExpressions.append(self._currentExpression)
+                for expr in consumedExpressions:
+                    # inline method
+                    if expr.token() == Token.tok_closing_bracket:
+                        return None
+            else:
+                # we have semicolon
+                fn = None
+                for index, expr in enumerate(consumedExpressions):
+                    if expr.token() == Token.tok_params_begin:
+                        # we have method
+                        fn = functionNode(consumedExpressions[index-1].identifier())
+                        continue
+                    if fn is not None:
+                        if expr.token() != Token.tok_params_end:
+                            fn.params += " " + expr.identifier()
+
+                if fn is not None:
+                    fn.params = fn.params.strip()
+                    return fn
+            
+        # return all ?
+        # for exp in reversed(consumedExpressions):
+        #     self._ReturnExpr(exp)
+        
+        return None
 
     def ParseNamespace(self):
 
         # we have "namespace" already
         
         # consume identifier
-        if self._GetNextToken() != Token.tok_identifier:
+        if self._GetExpression().token() != Token.tok_identifier:
             raise Exception("Identifier expected after namespace keyword")
 
         # we have identifier
-        n = namespaceNode(self._p.identifier)
+        n = namespaceNode(self._currentExpression.identifier())
 
         # opening bracket consumed
-        if self._GetNextToken() != Token.tok_opening_bracket:
+        if self._GetExpression().token() != Token.tok_opening_bracket:
             raise Exception("No opening brackets after namespace identifier")
 
         # currentToken == token.opening_brackets
 
         # empty namespace
-        if self._GetNextToken() == Token.tok_closing_bracket:
+        if self._GetExpression().token() == Token.tok_closing_bracket:
             return n
      
         # we have something
         # check for eof
-        if self._currentToken == Token.tok_eof:
+        if self._currentExpression.token() == Token.tok_eof:
             raise Exception("EOF before namespace closing bracket")
 
         # return something to stream
-        self._ReturnToken(self._currentToken)
+        self._ReturnExpr(self._currentExpression)
 
         # continue parsing, consume closing bracket
-        while self._GetNextToken() != Token.tok_closing_bracket:
-            self._ReturnToken(self._currentToken)
+        while self._GetExpression().token() != Token.tok_closing_bracket:
+            self._ReturnExpr(self._currentExpression)
             n.addChild(self.GetNextNode())
 
         if None in n.childNodes:
@@ -99,44 +131,44 @@ class AbstractTreeBuilder:
         # we have "class/struct" already
         
         # consume identifier
-        if self._GetNextToken() != Token.tok_identifier:
+        if self._GetExpression().token() != Token.tok_identifier:
             raise Exception("Identifier expected after class keyword")
 
         # we have identifier
-        objectName = self._p.identifier
+        objectName = self._currentExpression.identifier()
 
         # forwarded class
-        if self._GetNextToken() == Token.tok_semicolon:
+        if self._GetExpression().token() == Token.tok_semicolon:
             return forwardedClassNode(objectName)
 
         # not forwarded class
         # move after opening bracket
-        while self._currentToken != Token.tok_opening_bracket:
-            self._GetNextToken()
+        while self._currentExpression.token() != Token.tok_opening_bracket:
+            self._GetExpression()
 
         # currentToken == token.opening_brackets
 
         # empty class
-        if self._GetNextToken() == Token.tok_closing_bracket:
-            if self._GetNextToken() != Token.tok_semicolon:
+        if self._GetExpression().token() == Token.tok_closing_bracket:
+            if self._GetExpression().token() != Token.tok_semicolon:
                 raise Exception("Expecting ; after class ending bracket") # consume ;
             return classNode(objectName)
 
         # we have something
         # check for eof
-        if self._currentToken == Token.tok_eof:
+        if self._currentExpression.token() == Token.tok_eof:
             raise Exception("EOF before class closing bracket")
 
         # return something to stream
-        self._ReturnToken(self._currentToken)
+        self._ReturnExpr(self._currentExpression)
 
         c = classNode(objectName)
         # continue parsing, consume closing brackets
-        while self._GetNextToken() != Token.tok_closing_bracket:
-            self._ReturnToken(self._currentToken)
+        while self._GetExpression().token() != Token.tok_closing_bracket:
+            self._ReturnExpr(self._currentExpression)
             c.addChild(self.GetNextNode())
 
-        if self._GetNextToken() != Token.tok_semicolon:
+        if self._GetExpression().token() != Token.tok_semicolon:
                 raise Exception("Expecting ; after class ending bracket") # consume ;
 
         if None in c.childNodes:

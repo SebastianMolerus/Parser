@@ -1,33 +1,70 @@
 import unittest
 from parsing import Parser
 from parsing import Token
-from abstracttreebuilder import AbstractTreeBuilder
+from token_stream import TokenStream
 
-class Test_ATB(unittest.TestCase):
+class Test_TokenStream(unittest.TestCase):
 
-    def GetAllNodes(self, builder):
-        n = []
-        while builder.GetNextNode():
-            n.append(builder._lastNode)
-        return n
+    def test_GetingTokens(self):
+        p = Parser(Text=r"class A{};")
+        stream = TokenStream(p)
+        stream.next()
+        stream.next()
+        self.assertTrue(stream.currentTok.content == "A")
+        self.assertTrue(stream.currentTok.type == Token.tok_identifier)
 
-    def test_ClassInsindeNamespace(self):
-        a = AbstractTreeBuilder.FromTxt(r"namespace Z{class A{};}")
-        n = self.GetAllNodes(a)
-        self.assertTrue(len(n) == 1)
-        self.assertTrue(n[0].name == "Z")
-        self.assertTrue(n[0].childNodes[0].name == "A")
+    def test_GetAndReturn(self):
+        p = Parser(Text=r"class A{};")
+        stream = TokenStream(p)
 
-    def test_ClassWithoutEndingbracket(self):
-        a = AbstractTreeBuilder.FromTxt(r"namespace Z{class A{}}")     
-        with self.assertRaises(Exception) as ex:
-            n = self.GetAllNodes(a)
+        stream.next()
+        stream.next()
+        stream.returnTok(stream.currentTok) 
+        stream.next()
 
-    def test_SimplyMethod(self):
-        a = AbstractTreeBuilder.FromTxt(r"void foo();")     
-        n = self.GetAllNodes(a)
-        self.assertTrue(len(n) == 1)
-        self.assertTrue(n[0].name == 'foo')
+        self.assertTrue(stream.currentTok.content == "A")
+        self.assertTrue(stream.currentTok.type == Token.tok_identifier)
+
+    def test_GetAllAndReturn(self):
+        p = Parser(Text=r"class A{};")
+        stream = TokenStream(p)
+
+        stream.next()
+        stream.next()
+        stream.next()
+        stream.next()
+        stream.next()
+        stream.returnTok(stream.currentTok) 
+        stream.next()
+
+        self.assertTrue(stream.currentTok.content == ";")
+        self.assertTrue(stream.currentTok.type == Token.tok_semicolon)
+
+    def test_NoCurrentTokenAfterReturn(self):
+        p = Parser(Text=r"class A{};")
+        stream = TokenStream(p)
+        stream.next()
+        stream.returnTok(stream.currentTok)
+        self.assertTrue(stream.currentTok == None)
+
+    def test_BackToOriginalAfterReturn(self):
+        p = Parser(Text=r"class A{};")
+        stream = TokenStream(p)
+        stream.next()
+        stream.returnTok(stream.currentTok)
+        stream.next()
+        self.assertTrue(stream.currentTok.type == Token.tok_class)
+        self.assertTrue(stream.currentTok.content == 'class')
+        stream.next()
+        self.assertTrue(stream.currentTok.type == Token.tok_identifier)
+        self.assertTrue(stream.currentTok.content == 'A')
+
+    def test_GetAllUntillEof(self):
+        p = Parser(Text=r"class A{};")
+        stream = TokenStream(p)
+        while stream.next():
+            pass
+        self.assertTrue(stream.currentTok.type == Token.tok_eof)
 
 class Test_Parser(unittest.TestCase):
 
@@ -154,6 +191,9 @@ class Test_Parser(unittest.TestCase):
         t = self.GetAllTokens(code)
         self.assertTrue(len(t) == 0)
 
+class Test_FunctionParsing(unittest.TestCase):
+    def test_test(self):
+        pass
 
 def main():
     unittest.main()

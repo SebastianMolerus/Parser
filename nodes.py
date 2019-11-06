@@ -1,24 +1,46 @@
 
 class Node:
     def __init__(self, name):
-        self.name = name
-        self.childNodes = []
+        self._name = name
+        self._childNodes = []
 
     def addChild(self, node):
-        self.childNodes.append(node)
-
-    def getChildren(self):
-        return self.childNodes
+        self._childNodes.append(node)
+        print "Object: %s -> has new node %s" % (self._name, node._name)
 
 class classNode(Node):
-    pass
-
-class forwardedClassNode(Node):
-    pass
+    def __init__(self, name):
+        Node.__init__(self, name)
+        print "Class node (%s) created." % (self._name) 
 
 class namespaceNode(Node):
-    pass
+    def __init__(self, name):
+        Node.__init__(self, name)
+        print "Namespace node (%s) created." % (self._name) 
     
 class functionNode(Node):
-    pass
+    def __init__(self, name, returns = "", params=""):
+        Node.__init__(self, name)
+        self._returns = returns
+        self._params = params
+        print "Method node (%s) created." % (self._name) 
+
+    @property
+    def params(self):
+        return self._params
+    
+    @params.setter
+    def params(self, params):
+        self._params = params
+        print "Method %s with params : (%s)" % (self._name, self._params)
+
+    @property
+    def returns(self):
+        return self._returns
+
+    @returns.setter
+    def returns(self, returns):
+        self._returns = returns
+        print "Method %s returns %s" % (self._name, self._returns)
+
     

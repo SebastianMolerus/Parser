@@ -2,6 +2,50 @@ import unittest
 from parsing import Parser
 from parsing import Token
 from token_stream import TokenStream
+from token_stream_resto import TokenStreamResto
+from function_parser import FunctionParser
+
+class Test_TokenStreamRestore(unittest.TestCase):
+
+    def test_RestoringState(self):
+        p = Parser(Text=r"class A{};")
+        stream = TokenStreamResto(p)
+        while stream.next():
+            pass
+        stream.restore()
+        stream.next()
+        self.assertTrue(stream.currentTok.content == "class")
+        stream.next()
+        self.assertTrue(stream.currentTok.content == 'A')
+
+    def test_ConvertingToResto(self):
+        p = Parser(Text=r"class A{};")
+        stream = TokenStream(p)
+        stream.next()
+        stream.next()
+        self.assertTrue(stream.currentTok.content == "A")
+        restoStream = TokenStreamResto.from_token_stream(stream)
+        restoStream.next()
+        self.assertTrue(restoStream.currentTok.content == "{")
+        restoStream.next()
+        self.assertTrue(restoStream.currentTok.content == "}")
+        restoStream.next()
+        self.assertTrue(restoStream.currentTok.content == ";")
+        restoStream.restore()
+        self.assertTrue(restoStream.currentTok == None)
+        restoStream.next()
+        self.assertTrue(restoStream.currentTok.content == "{")
+
+    def test_IntentionalShallowCopy(self):
+        p = Parser(Text=r"class A{};")
+        stream = TokenStream(p)
+        stream.next()
+        stream.next()
+        restoStream = TokenStreamResto.from_token_stream(stream)
+        restoStream.next()
+        self.assertTrue(stream.currentTok == restoStream.currentTok)
+
+
 
 class Test_TokenStream(unittest.TestCase):
 
@@ -191,9 +235,17 @@ class Test_Parser(unittest.TestCase):
         t = self.GetAllTokens(code)
         self.assertTrue(len(t) == 0)
 
-class Test_FunctionParsing(unittest.TestCase):
-    def test_test(self):
-        pass
+# class Test_FunctionParsing(unittest.TestCase):
+#     def test_SimpleFunction(self):
+#         p = Parser(Text=r"void function();")
+#         stream = TokenStream(p)
+#         fp = FunctionParser(stream)
+#         f = fp.try_get_function()
+#         self.assertTrue(f.params == "")
+#         self.assertTrue(f.returns == "void")
+#         self.assertTrue(f.name == "function")
+
+        
 
 def main():
     unittest.main()

@@ -8,6 +8,10 @@ class Node:
         self._childNodes.append(node)
         print "Object: %s -> has new node %s" % (self._name, node._name)
 
+    @property
+    def name(self):
+        return self._name
+
 class classNode(Node):
     def __init__(self, name):
         Node.__init__(self, name)

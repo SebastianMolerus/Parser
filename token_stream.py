@@ -2,7 +2,7 @@ from parsing import Parser
 from parsing import Token
 from token_expr import TokExpr
 
-class TokenStream:
+class TokenStream(object):
     def __init__(self, parser):
         self._parser = parser
         self._currTok = None

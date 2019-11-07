@@ -2,21 +2,50 @@ import unittest
 from parsing import Parser
 from parsing import Token
 from token_stream import TokenStream
-from token_stream_resto import TokenStreamResto
+from token_stream_resto import TokenStreamRestoWrapper
 from function_parser import FunctionParser
 
 class Test_TokenStreamRestore(unittest.TestCase):
 
+    def test_RestoAllFromWarapper(self):
+        p = Parser(Text=r"class A{};")
+        stream = TokenStream(p)
+
+        ts = TokenStreamRestoWrapper(stream)
+        ts.next()
+        ts.next()
+        self.assertTrue(stream.currentTok.content == 'A')
+        ts.restore()
+        self.assertTrue(stream.currentTok == None)
+
+        stream.next()
+        self.assertTrue(stream.currentTok.content == 'class')
+
+    def test_NoRestore(self):
+        p = Parser(Text=r"class A{};void f()")
+        stream = TokenStream(p)
+
+        ts = TokenStreamRestoWrapper(stream)
+        ts.next()
+        ts.next()
+        ts.next()
+        ts.next()
+        ts.next()
+
+        stream.next()
+        self.assertTrue(stream.currentTok.content == 'void')
+
     def test_RestoringState(self):
         p = Parser(Text=r"class A{};")
-        stream = TokenStreamResto(p)
-        while stream.next():
+        stream = TokenStream(p)
+        ts = TokenStreamRestoWrapper(stream)
+        while ts.next():
             pass
-        stream.restore()
-        stream.next()
-        self.assertTrue(stream.currentTok.content == "class")
-        stream.next()
-        self.assertTrue(stream.currentTok.content == 'A')
+        ts.restore()
+        ts.next()
+        self.assertTrue(ts.currentTok.content == "class")
+        ts.next()
+        self.assertTrue(ts.currentTok.content == 'A')
 
     def test_ConvertingToResto(self):
         p = Parser(Text=r"class A{};")
@@ -24,8 +53,9 @@ class Test_TokenStreamRestore(unittest.TestCase):
         stream.next()
         stream.next()
         self.assertTrue(stream.currentTok.content == "A")
-        restoStream = TokenStreamResto.from_token_stream(stream)
+        restoStream = TokenStreamRestoWrapper(stream)
         restoStream.next()
+
         self.assertTrue(restoStream.currentTok.content == "{")
         restoStream.next()
         self.assertTrue(restoStream.currentTok.content == "}")
@@ -41,11 +71,10 @@ class Test_TokenStreamRestore(unittest.TestCase):
         stream = TokenStream(p)
         stream.next()
         stream.next()
-        restoStream = TokenStreamResto.from_token_stream(stream)
+        restoStream = TokenStreamRestoWrapper(stream)
         restoStream.next()
+        self.assertTrue(restoStream.currentTok.type == Token.tok_opening_bracket)
         self.assertTrue(stream.currentTok == restoStream.currentTok)
-
-
 
 class Test_TokenStream(unittest.TestCase):
 

@@ -12,10 +12,13 @@ class TokenStreamRestoWrapper:
         self._consumedTokens.append(self._wrappee.currentTok)
         return res
     
-    def restore(self):
-        for tok in reversed(self._consumedTokens):
+    def restore(self, count = -1):
+        rev = reversed(self._consumedTokens)
+        for i, tok in enumerate(rev):
             self._wrappee.returnTok(tok)
-        self._consumedTokens = []
+            self._consumedTokens.remove(tok)
+            if count > 0 and count == i:
+                break
 
     @property
     def currentTok(self):

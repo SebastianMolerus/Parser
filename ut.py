@@ -3,20 +3,33 @@ from parsing import Parser
 from parsing import Token
 from token_stream import TokenStream
 from token_stream_resto import TokenStreamRestoWrapper
+from token_stream_seeker import TokenStreamSeekerWrapper
 from function_parser import FunctionParser
+
+class Test_TokenStreamSeeker(unittest.TestCase):
+    def test_SimpleSeek(self):
+        p = Parser(Text=r"class A{};")
+        stream = TokenStream(p)
+        ts = TokenStreamSeekerWrapper(stream)
+
+        ts.next()
+        self.assertTrue(ts.currentTok.content == "class")
+        self.assertTrue(ts.seek(1).content == "A")
+        self.assertTrue(ts.currentTok.content == "class")
+        # self.assertTrue(ts.next())
+        # self.assertTrue(ts.currentTok.content == "A")
 
 class Test_TokenStreamRestore(unittest.TestCase):
 
     def test_RestoAllFromWarapper(self):
         p = Parser(Text=r"class A{};")
         stream = TokenStream(p)
-
         ts = TokenStreamRestoWrapper(stream)
-        ts.next()
-        ts.next()
-        self.assertTrue(stream.currentTok.content == 'A')
+
+        while ts.next():
+            pass
+
         ts.restore()
-        self.assertTrue(stream.currentTok == None)
 
         stream.next()
         self.assertTrue(stream.currentTok.content == 'class')
@@ -62,7 +75,7 @@ class Test_TokenStreamRestore(unittest.TestCase):
         restoStream.next()
         self.assertTrue(restoStream.currentTok.content == ";")
         restoStream.restore()
-        self.assertTrue(restoStream.currentTok == None)
+        self.assertTrue(restoStream.currentTok.content == ";")
         restoStream.next()
         self.assertTrue(restoStream.currentTok.content == "{")
 
@@ -112,13 +125,6 @@ class Test_TokenStream(unittest.TestCase):
 
         self.assertTrue(stream.currentTok.content == ";")
         self.assertTrue(stream.currentTok.type == Token.tok_semicolon)
-
-    def test_NoCurrentTokenAfterReturn(self):
-        p = Parser(Text=r"class A{};")
-        stream = TokenStream(p)
-        stream.next()
-        stream.returnTok(stream.currentTok)
-        self.assertTrue(stream.currentTok == None)
 
     def test_BackToOriginalAfterReturn(self):
         p = Parser(Text=r"class A{};")
@@ -204,7 +210,7 @@ class Test_Parser(unittest.TestCase):
 
     def test_methodWithTwoParams(self):
 
-        code = "void someMethod(uint32_t& someRef, uint8_t* ptr) const;"
+        code = "void someMethod(uint32_t & someRef, uint8_t * ptr) const;"
 
         tokens = self.GetAllTokens(code)
 
@@ -219,7 +225,7 @@ class Test_Parser(unittest.TestCase):
         self.assertTrue(tokens[8] == [Token.tok_star, '*'])
         self.assertTrue(tokens[9] == [Token.tok_identifier, 'ptr'])
         self.assertTrue(tokens[10] == [Token.tok_params_end, ')'])
-        self.assertTrue(tokens[11] == [Token.tok_identifier, 'const'])
+        self.assertTrue(tokens[11] == [Token.tok_const, 'const'])
         self.assertTrue(tokens[12] == [Token.tok_semicolon, ';'])
 
     def test_notValidCommentedCode(self):
@@ -264,17 +270,6 @@ class Test_Parser(unittest.TestCase):
         t = self.GetAllTokens(code)
         self.assertTrue(len(t) == 0)
 
-# class Test_FunctionParsing(unittest.TestCase):
-#     def test_SimpleFunction(self):
-#         p = Parser(Text=r"void function();")
-#         stream = TokenStream(p)
-#         fp = FunctionParser(stream)
-#         f = fp.try_get_function()
-#         self.assertTrue(f.params == "")
-#         self.assertTrue(f.returns == "void")
-#         self.assertTrue(f.name == "function")
-
-        
 
 def main():
     unittest.main()

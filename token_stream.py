@@ -16,6 +16,7 @@ class TokenStream(object):
             self._get_from_parser()
 
         if self._currTok.type == Token.tok_eof:
+            self._currTok.content = ""
             return False
 
         return True
@@ -34,4 +35,3 @@ class TokenStream(object):
 
     def returnTok(self, tok):
         self._tokBuffer.insert(0, tok)
-        self._currTok = None

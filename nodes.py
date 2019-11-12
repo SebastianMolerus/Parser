@@ -23,8 +23,8 @@ class namespaceNode(Node):
         print "Namespace node (%s) created." % (self._name) 
     
 class functionNode(Node):
-    def __init__(self, name, returns = "", params=""):
-        Node.__init__(self, name)
+    def __init__(self, function_name, returns = "", params=""):
+        Node.__init__(self, function_name)
         self._returns = returns
         self._params = params
         print "Method node (%s) created." % (self._name) 
@@ -47,4 +47,15 @@ class functionNode(Node):
         self._returns = returns
         print "Method %s returns %s" % (self._name, self._returns)
 
-    
+class ctorNode(Node):
+    def __init__(self, name, initParams):
+        Node.__init__(self, name)
+        self._initParams = initParams
+        print "Ctor node (%s) created." % (self._name)
+
+class CopyConstructorNode(ctorNode):
+    def __init__(self, name, initParams, returns):
+        ctorNode.__init__(self, name, initParams)
+        self._returns = returns
+        print "CopyCtor node (%s) created." % (self._name)
+

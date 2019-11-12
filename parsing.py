@@ -18,10 +18,11 @@ class Token(enum.Enum):
     tok_comma           =   14,    # ,
     tok_eof             =   15,
     tok_ref             =   16,    # &,
-    tok_star            =   17,     # *
-    tok_preproc         =   18,     # #
-    tok_tilde           =   19,     # ~
-    tok_const           =   20
+    tok_star            =   17,    # *
+    tok_preproc         =   18,    # #
+    tok_tilde           =   19,    # ~
+    tok_const           =   20,
+    tok_equal           =   21
 
 class CharStream:
     def __init__(self):
@@ -136,6 +137,8 @@ class Parser:
             return Token.tok_tilde
         if self.identifier == r"const":
             return Token.tok_const
+        if self.identifier == r"=":
+            return Token.tok_equal
 
         if self.identifier == r"e0f":
             return Token.tok_eof

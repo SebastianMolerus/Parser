@@ -1,92 +1,54 @@
 from parsing import Parser
 from parsing import Token
-from nodes import namespaceNode
-from nodes import classNode
-from nodes import functionNode
+
+import tokenstream
+
+import nodes
+
 
 class AbstractTreeBuilder:
 
-    def __init__(self, parser):
-        self._p = parser
-        self._expressionBuffer = []
-        self._currentExpression = None
-        self._lastNode = None
-
-    @classmethod
-    def FromTxt(cls, txt):
-        _p = Parser(Text=txt)
-        return cls(_p)
-
-    @classmethod
-    def FromFile(cls, file):
-        _p = Parser(fileName=file)
-        return cls(_p)
-
-    def _GetExpression(self):
-
-        if len(self._expressionBuffer) > 0:
-            self._currentExpression = self._expressionBuffer.pop(0)
-        else:
-            self._currentExpression = expr(self._p.GetToken(), self._p.identifier)
-        return self._currentExpression
-
-    def _ReturnExpr(self, expression):
-        self._expressionBuffer.insert(0, expression)
-
+    def __init__(self, token_stream):
+        self._stream = token_stream
 
     def GetNextNode(self):
 
-        while self._GetExpression().token() != Token.tok_eof:      
+        while self._stream.next():
+            pass  
 
-            if self._currentExpression.token() == Token.tok_class:
-                self._lastNode =  self.ParseClass()
-                return self._lastNode
-            if self._currentExpression.token() == Token.tok_namespace:
-                self._lastNode = self.ParseNamespace()
-                return self._lastNode
-
-            self._ReturnExpr(self._currentExpression)
-            self._lastNode = self.TryParseFunction()
-            if self._lastNode is not None:
-                return self._lastNode
-            else:
-                return self.GetNextNode()
-
-
-    def TryParseFunction(self):
+    def TryParseSomething(self, ContextNode = None):
     
-        consumedExpressions = []
+        #    |
+        #   i();
+        stream = self._stream
+        stream.save()
 
-        # eating tokens till ;
-        while self._GetExpression().token() != Token.tok_eof:
+        # go backward for identifier
+        stream.prev()
+        #   |
+        #   i();
 
-            if self._currentExpression.token() != Token.tok_semicolon:
-                consumedExpressions.append(self._currentExpression)
-                for expr in consumedExpressions:
-                    # inline method
-                    if expr.token() == Token.tok_closing_bracket:
-                        return None
-            else:
-                # we have semicolon
-                fn = None
-                for index, expr in enumerate(consumedExpressions):
-                    if expr.token() == Token.tok_params_begin:
-                        # we have method
-                        fn = functionNode(consumedExpressions[index-1].identifier())
-                        continue
-                    if fn is not None:
-                        if expr.token() != Token.tok_params_end:
-                            fn.params += " " + expr.identifier()
+        identifier = stream.current.content
 
-                if fn is not None:
-                    fn.params = fn.params.strip()
-                    return fn
-            
-        # return all ?
-        # for exp in reversed(consumedExpressions):
-        #     self._ReturnExpr(exp)
-        
+        stream.next()
+        #    |
+        #   i();
+
+        if ContextNode:
+            # method in class
+
+            # Ctor
+
+
+        else:
+            # function
+       
+
         return None
+
+
+       
+
 
     def ParseNamespace(self):
 

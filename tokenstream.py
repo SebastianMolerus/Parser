@@ -19,6 +19,7 @@ class TokenStream:
     def __init__(self, parser):
         self._cache = []
         self._currentIndex = None
+        self._savedIndex = -1
 
         while True:
             t = parser.GetToken()
@@ -42,6 +43,12 @@ class TokenStream:
             self._currentIndex-=1
             return True
         return False
+
+    def save(self):
+        self._savedIndex = self._currentIndex
+
+    def load(self):
+        self._currentIndex = self._savedIndex
 
     @property
     def current(self):

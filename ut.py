@@ -16,7 +16,7 @@ class Test_TokenStream(unittest.TestCase):
         t = TokenStream(p)
         self.assertTrue(t.current.content == 'namespace')
 
-    def test_IterateTillEnd(self):
+    def test_IterateForwardAndBackward(self):
         p = Parser(Text="namespace A;")        
         t = TokenStream(p)
 
@@ -29,14 +29,6 @@ class Test_TokenStream(unittest.TestCase):
             pass
 
         self.assertTrue(t.current.content == 'namespace')
-
-    def test_GoPrevious(self):
-        p = Parser(Text="namespace A;")        
-        t = TokenStream(p)
-
-        while t.next():
-            pass
-        self.assertTrue(t.current.content == ';')
 
 class Test_Parser(unittest.TestCase):
 

@@ -1,149 +1,42 @@
 import unittest
+
 from parsing import Parser
 from parsing import Token
-from token_stream import TokenStream
-from token_stream_resto import TokenStreamRestoWrapper
-from token_stream_seeker import TokenStreamSeekerWrapper
-from function_parser import FunctionParser
 
-class Test_TokenStreamSeeker(unittest.TestCase):
-    def test_SimpleSeek(self):
-        p = Parser(Text=r"class A{};")
-        stream = TokenStream(p)
-        ts = TokenStreamSeekerWrapper(stream)
-
-        ts.next()
-        self.assertTrue(ts.currentTok.content == "class")
-        self.assertTrue(ts.seek(1).content == "A")
-        self.assertTrue(ts.currentTok.content == "class")
-        # self.assertTrue(ts.next())
-        # self.assertTrue(ts.currentTok.content == "A")
-
-class Test_TokenStreamRestore(unittest.TestCase):
-
-    def test_RestoAllFromWarapper(self):
-        p = Parser(Text=r"class A{};")
-        stream = TokenStream(p)
-        ts = TokenStreamRestoWrapper(stream)
-
-        while ts.next():
-            pass
-
-        ts.restore()
-
-        stream.next()
-        self.assertTrue(stream.currentTok.content == 'class')
-
-    def test_NoRestore(self):
-        p = Parser(Text=r"class A{};void f()")
-        stream = TokenStream(p)
-
-        ts = TokenStreamRestoWrapper(stream)
-        ts.next()
-        ts.next()
-        ts.next()
-        ts.next()
-        ts.next()
-
-        stream.next()
-        self.assertTrue(stream.currentTok.content == 'void')
-
-    def test_RestoringState(self):
-        p = Parser(Text=r"class A{};")
-        stream = TokenStream(p)
-        ts = TokenStreamRestoWrapper(stream)
-        while ts.next():
-            pass
-        ts.restore()
-        ts.next()
-        self.assertTrue(ts.currentTok.content == "class")
-        ts.next()
-        self.assertTrue(ts.currentTok.content == 'A')
-
-    def test_ConvertingToResto(self):
-        p = Parser(Text=r"class A{};")
-        stream = TokenStream(p)
-        stream.next()
-        stream.next()
-        self.assertTrue(stream.currentTok.content == "A")
-        restoStream = TokenStreamRestoWrapper(stream)
-        restoStream.next()
-
-        self.assertTrue(restoStream.currentTok.content == "{")
-        restoStream.next()
-        self.assertTrue(restoStream.currentTok.content == "}")
-        restoStream.next()
-        self.assertTrue(restoStream.currentTok.content == ";")
-        restoStream.restore()
-        self.assertTrue(restoStream.currentTok.content == ";")
-        restoStream.next()
-        self.assertTrue(restoStream.currentTok.content == "{")
-
-    def test_IntentionalShallowCopy(self):
-        p = Parser(Text=r"class A{};")
-        stream = TokenStream(p)
-        stream.next()
-        stream.next()
-        restoStream = TokenStreamRestoWrapper(stream)
-        restoStream.next()
-        self.assertTrue(restoStream.currentTok.type == Token.tok_opening_bracket)
-        self.assertTrue(stream.currentTok == restoStream.currentTok)
+from tokenstream import TokenStream
 
 class Test_TokenStream(unittest.TestCase):
+    def test_Initialize(self):
+        p = Parser(Text="namespace A; class B;")                 
+        t = TokenStream(p)
+        self.assertTrue(len(t._cache) == 6)
 
-    def test_GetingTokens(self):
-        p = Parser(Text=r"class A{};")
-        stream = TokenStream(p)
-        stream.next()
-        stream.next()
-        self.assertTrue(stream.currentTok.content == "A")
-        self.assertTrue(stream.currentTok.type == Token.tok_identifier)
+    def test_CurrentTokenAssignedToFirstElement(self):
+        p = Parser(Text="namespace A; class B;")        
+        t = TokenStream(p)
+        self.assertTrue(t.current.content == 'namespace')
 
-    def test_GetAndReturn(self):
-        p = Parser(Text=r"class A{};")
-        stream = TokenStream(p)
+    def test_IterateTillEnd(self):
+        p = Parser(Text="namespace A;")        
+        t = TokenStream(p)
 
-        stream.next()
-        stream.next()
-        stream.returnTok(stream.currentTok) 
-        stream.next()
-
-        self.assertTrue(stream.currentTok.content == "A")
-        self.assertTrue(stream.currentTok.type == Token.tok_identifier)
-
-    def test_GetAllAndReturn(self):
-        p = Parser(Text=r"class A{};")
-        stream = TokenStream(p)
-
-        stream.next()
-        stream.next()
-        stream.next()
-        stream.next()
-        stream.next()
-        stream.returnTok(stream.currentTok) 
-        stream.next()
-
-        self.assertTrue(stream.currentTok.content == ";")
-        self.assertTrue(stream.currentTok.type == Token.tok_semicolon)
-
-    def test_BackToOriginalAfterReturn(self):
-        p = Parser(Text=r"class A{};")
-        stream = TokenStream(p)
-        stream.next()
-        stream.returnTok(stream.currentTok)
-        stream.next()
-        self.assertTrue(stream.currentTok.type == Token.tok_class)
-        self.assertTrue(stream.currentTok.content == 'class')
-        stream.next()
-        self.assertTrue(stream.currentTok.type == Token.tok_identifier)
-        self.assertTrue(stream.currentTok.content == 'A')
-
-    def test_GetAllUntillEof(self):
-        p = Parser(Text=r"class A{};")
-        stream = TokenStream(p)
-        while stream.next():
+        while t.next():
             pass
-        self.assertTrue(stream.currentTok.type == Token.tok_eof)
+
+        self.assertTrue(t.current.content == ';')
+
+        while t.prev():
+            pass
+
+        self.assertTrue(t.current.content == 'namespace')
+
+    def test_GoPrevious(self):
+        p = Parser(Text="namespace A;")        
+        t = TokenStream(p)
+
+        while t.next():
+            pass
+        self.assertTrue(t.current.content == ';')
 
 class Test_Parser(unittest.TestCase):
 

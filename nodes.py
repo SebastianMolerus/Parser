@@ -50,12 +50,11 @@ class functionNode(Node):
 class ctorNode(Node):
     def __init__(self, name, initParams):
         Node.__init__(self, name)
-        self._initParams = initParams
+        self.params = initParams
         print "Ctor node (%s) created." % (self._name)
 
-class CopyConstructorNode(ctorNode):
-    def __init__(self, name, initParams, returns):
-        ctorNode.__init__(self, name, initParams)
-        self._returns = returns
-        print "CopyCtor node (%s) created." % (self._name)
+class AssignOp:
+    def __init__(self, params, returns):
+        self.params = params
+        self.returns = returns
 

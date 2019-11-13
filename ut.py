@@ -5,6 +5,14 @@ from parsing import Token
 
 from tokenstream import TokenStream
 
+from abstracttreebuilder import AbstractTreeBuilder
+
+import nodes
+
+class NodeStub:
+    def __init__(self, name):
+        self.name = name
+
 class Test_TokenStream(unittest.TestCase):
     def test_Initialize(self):
         p = Parser(Text="namespace A; class B;")                 
@@ -29,6 +37,26 @@ class Test_TokenStream(unittest.TestCase):
             pass
 
         self.assertTrue(t.current.content == 'namespace')
+
+    def test_Seeking(self):
+        p = Parser(Text="namespace A class B struct D")        
+        t = TokenStream(p)
+
+        t.next()
+        t.next()
+        self.assertTrue(t.current.content == 'class')
+        self.assertTrue(t.seek(0).content == 'class')
+
+        self.assertTrue(t.seek(-1).content == 'A')
+        self.assertTrue(t.seek(-2).content == 'namespace')
+        self.assertTrue(t.seek(-3).content == 'namespace')
+        self.assertTrue(t.seek(-9).content == 'namespace')
+
+        self.assertTrue(t.seek(1).content == "B")
+        self.assertTrue(t.seek(2).content == "struct")
+        self.assertTrue(t.seek(3).content == "D")
+        self.assertTrue(t.seek(4).content == "D")
+        self.assertTrue(t.seek(10000).content == "D")
 
 class Test_Parser(unittest.TestCase):
 
@@ -154,6 +182,71 @@ class Test_Parser(unittest.TestCase):
         code = "friend class NamespaceA::NamespaceB::someClass"
         t = self.GetAllTokens(code)
         self.assertTrue(len(t) == 0)
+
+
+class Test_TryHard(unittest.TestCase):
+    def test_CtorParsingSuccess(self):
+        p = Parser(Text="A(A const& other);")        
+        t = TokenStream(p)
+        t.next()
+        ns = NodeStub("A")
+        ATB = AbstractTreeBuilder(t)
+
+        ctor = ATB.TryHard(ns)
+        self.assertTrue(ctor.name == "A")
+        self.assertTrue(ctor.params == "A const & other")
+
+    def test_CtorParsingNotValidContext(self):
+        p = Parser(Text="A();")        
+        t = TokenStream(p)
+        t.next()
+        ns = NodeStub("Z")
+        ATB = AbstractTreeBuilder(t)
+
+        self.assertTrue(ATB.TryHard(ns) == None)
+
+    def test_CtorParsingValidContextButInline(self):
+        p = Parser(Text=r"A(){")        
+        t = TokenStream(p)
+        t.next()
+        ns = NodeStub("A")
+        ATB = AbstractTreeBuilder(t)
+
+        self.assertTrue(ATB.TryHard(ns) == None)
+
+    def test_CtorParsingInValidContextButInline(self):
+        p = Parser(Text=r"A(A const& other){")        
+        t = TokenStream(p)
+        t.next()
+        ns = NodeStub("G")
+        ATB = AbstractTreeBuilder(t)
+
+        self.assertTrue(ATB.TryHard(ns) == None)
+
+    def test_AssignOpSuccess(self):
+        p = Parser(Text=r"A& operator=(A const& other);")        
+        t = TokenStream(p)
+        while t.next() and t.current.type != Token.tok_params_begin:
+            pass
+        ns = NodeStub("A")
+        ATB = AbstractTreeBuilder(t)
+        op = ATB.TryHard(ns)
+
+        self.assertTrue(op.params == 'A const & other')
+        self.assertTrue(op.returns == 'A&')
+
+    def test_AssignOpSuccessWithVoidReturn(self):
+        p = Parser(Text=r"void operator=(A const& other);")        
+        t = TokenStream(p)
+        while t.next() and t.current.type != Token.tok_params_begin:
+            pass
+        ns = NodeStub("A")
+        ATB = AbstractTreeBuilder(t)
+        op = ATB.TryHard(ns)
+
+        self.assertTrue(op.params == 'A const & other')
+        self.assertTrue(op.returns == 'void')
+
 
 
 def main():

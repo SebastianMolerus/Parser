@@ -44,6 +44,19 @@ class TokenStream:
             return True
         return False
 
+    def seek(self, count):
+
+        if count > 0:
+            if self._currentIndex + count >= len(self._cache):
+                return self._cache[-1]
+
+        elif count < 0:
+            if self._currentIndex + count < 0:
+                return self._cache[0]
+
+        return self._cache[self._currentIndex + count]
+            
+
     def save(self):
         self._savedIndex = self._currentIndex
 

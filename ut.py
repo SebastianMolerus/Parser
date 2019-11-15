@@ -7,12 +7,6 @@ from tokenstream import TokenStream
 
 from abstracttreebuilder import AbstractTreeBuilder
 
-import nodes
-
-class NodeStub:
-    def __init__(self, name):
-        self.name = name
-
 class Test_TokenStream(unittest.TestCase):
     def test_Initialize(self):
         p = Parser(Text="namespace A; class B;")                 
@@ -83,6 +77,11 @@ class Test_Parser(unittest.TestCase):
         tok2 = p.GetToken()
         self.assertTrue(tok2 == Token.tok_identifier)
         self.assertTrue(p.identifier == 'b')
+
+    def test_ColonsAsIdentifiers(self):
+        p = Parser(Text="A::b")
+        p.GetToken()
+        self.assertEqual(p.identifier, 'A::b')
 
     def test_CheckingEof(self):
         
@@ -183,71 +182,104 @@ class Test_Parser(unittest.TestCase):
         t = self.GetAllTokens(code)
         self.assertTrue(len(t) == 0)
 
+class ContextStub:
+    def __init__(self, name):
+        self.name = name
 
-class Test_TryHard(unittest.TestCase):
-    def test_CtorParsingSuccess(self):
-        p = Parser(Text="A(A const& other);")        
-        t = TokenStream(p)
-        t.next()
-        ns = NodeStub("A")
-        ATB = AbstractTreeBuilder(t)
+class Test_ATB(unittest.TestCase):
 
-        ctor = ATB.TryHard(ns)
-        self.assertTrue(ctor.name == "A")
-        self.assertTrue(ctor.params == "A const & other")
-
-    def test_CtorParsingNotValidContext(self):
-        p = Parser(Text="A();")        
-        t = TokenStream(p)
-        t.next()
-        ns = NodeStub("Z")
-        ATB = AbstractTreeBuilder(t)
-
-        self.assertTrue(ATB.TryHard(ns) == None)
-
-    def test_CtorParsingValidContextButInline(self):
-        p = Parser(Text=r"A(){")        
-        t = TokenStream(p)
-        t.next()
-        ns = NodeStub("A")
-        ATB = AbstractTreeBuilder(t)
-
-        self.assertTrue(ATB.TryHard(ns) == None)
-
-    def test_CtorParsingInValidContextButInline(self):
-        p = Parser(Text=r"A(A const& other){")        
-        t = TokenStream(p)
-        t.next()
-        ns = NodeStub("G")
-        ATB = AbstractTreeBuilder(t)
-
-        self.assertTrue(ATB.TryHard(ns) == None)
-
-    def test_AssignOpSuccess(self):
-        p = Parser(Text=r"A& operator=(A const& other);")        
-        t = TokenStream(p)
-        while t.next() and t.current.type != Token.tok_params_begin:
+    def _set_token_stream_on_inputs_begin(self, token_stream):
+        while token_stream.next() and token_stream.current.type != Token.tok_params_begin:
             pass
-        ns = NodeStub("A")
-        ATB = AbstractTreeBuilder(t)
-        op = ATB.TryHard(ns)
 
-        self.assertTrue(op.params == 'A const & other')
-        self.assertTrue(op.returns == 'A&')
-
-    def test_AssignOpSuccessWithVoidReturn(self):
-        p = Parser(Text=r"void operator=(A const& other);")        
+    def test_Parse_Expression_CtorSuccess(self):
+        p = Parser(Text="A();")               
         t = TokenStream(p)
-        while t.next() and t.current.type != Token.tok_params_begin:
-            pass
-        ns = NodeStub("A")
-        ATB = AbstractTreeBuilder(t)
-        op = ATB.TryHard(ns)
+        self._set_token_stream_on_inputs_begin(t)
+        c = ContextStub("A")
+        a = AbstractTreeBuilder(t)
 
-        self.assertTrue(op.params == 'A const & other')
-        self.assertTrue(op.returns == 'void')
+        CtorExp = a.Parse_Expression(c)
 
+        self.assertEqual(CtorExp.name, "A")
+        self.assertEqual(CtorExp.params, "")
+        self.assertEqual(t.current.content, r";")
+  
+    def test_Parse_Expression_ParseCtorImplementedInline(self):
+        p = Parser(Text=r"A(){};")               
+        t = TokenStream(p)
+        self._set_token_stream_on_inputs_begin(t)
+        c = ContextStub("A")
+        a = AbstractTreeBuilder(t)
 
+        self.assertIsNone(a.Parse_Expression(c))
+        self.assertTrue(t.current.content == r"{")
+
+    def test_Parse_Expression_ParseCtorWithDifferentContext(self):
+        p = Parser(Text=r");A(){}")               
+        t = TokenStream(p)
+        self._set_token_stream_on_inputs_begin(t)
+        c = ContextStub("B")
+        a = AbstractTreeBuilder(t)
+
+        self.assertIsNone(a.Parse_Expression(c))
+        self.assertTrue(t.current.content == r"{")
+
+    def test_Parse_Expression_CopyCtorSuccess(self):
+        p = Parser(Text=r"class A{A(A const& other);")               
+        t = TokenStream(p)
+        self._set_token_stream_on_inputs_begin(t)
+        c = ContextStub("A")
+        a = AbstractTreeBuilder(t)
+        CopyCtorExp = a.Parse_Expression(c)
+
+        self.assertEqual(CopyCtorExp.name, "A")
+        self.assertEqual(CopyCtorExp.params, "A const & other")
+        self.assertEqual(t.current.content, r";")
+
+    def test_Parse_Expression_CopyCtorImplementedInline(self):
+        p = Parser(Text=r"const;A(A const& other){}")               
+        t = TokenStream(p)
+        self._set_token_stream_on_inputs_begin(t)
+        c = ContextStub("A")
+        a = AbstractTreeBuilder(t)
+
+        self.assertIsNone(a.Parse_Expression(c))
+        self.assertEqual(t.current.content, r"{")
+
+    def test_Parse_Expression_AssignOperatorSuccess(self):
+        p = Parser(Text=r"A& operator=(A const& other);")               
+        t = TokenStream(p)
+        self._set_token_stream_on_inputs_begin(t)
+        c = ContextStub("A")
+        a = AbstractTreeBuilder(t)
+        op = a.Parse_Expression(c)
+
+        self.assertEqual(op.params, "A const & other")
+        self.assertEqual(op.returns,  "A&")
+        self.assertEqual(t.current.content, r";")
+
+    def test_Parse_Expression_AssignOperatorImplementedInline(self):
+        p = Parser(Text=r"A& operator=(A const& other){")               
+        t = TokenStream(p)
+        self._set_token_stream_on_inputs_begin(t)
+        c = ContextStub("A")
+        a = AbstractTreeBuilder(t)
+
+        self.assertIsNone(a.Parse_Expression(c))
+        self.assertEqual(t.current.content, r"{")
+
+    def test_Parse_Expression_EasiestMethodToParse(self):
+        p = Parser(Text=r"{void m();")               
+        t = TokenStream(p)
+        self._set_token_stream_on_inputs_begin(t)
+        c = ContextStub("A")
+        a = AbstractTreeBuilder(t)
+        m = a.Parse_Expression(c)
+
+        self.assertEqual(m.name, "m")
+        self.assertEqual(m.params, "")
+        self.assertEqual(t.current.content, r";")
 
 def main():
     unittest.main()

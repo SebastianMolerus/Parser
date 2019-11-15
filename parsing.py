@@ -82,8 +82,8 @@ class Parser:
             self.identifier = self.cs.pop()
 
         #process alnums
-        while self.cs.lastChar.isalnum() or self.cs.lastChar == r'_':
-            if self.cs.pop().isalnum() or self.cs.lastChar == r'_':
+        while self.cs.lastChar.isalnum() or self.cs.lastChar == r'_' or self.cs.lastChar == r':':
+            if self.cs.pop().isalnum() or self.cs.lastChar == r'_' or self.cs.lastChar == r':':
                 self.identifier+=self.cs.lastChar
             else:
                 self.cs.push(self.cs.lastChar)

@@ -1,7 +1,10 @@
 from tokenstream import TokenStream
 from parsing import Token
-from nodes import ctorNode
-from nodes import AssignOp
+
+from expressions import CtorExpr
+from expressions import CopyCtorExpr
+from expressions import AssignOpExpr
+from expressions import MethodExpr
 
 
 class AbstractTreeBuilder:
@@ -35,6 +38,54 @@ class AbstractTreeBuilder:
         inputs = inputs.strip()
         return inputs
 
+    def _parse_method(self, method_name):
+        stream = self._stream
+
+        openParamsIndex = stream._currentIndex
+        #    |
+        # ...(...);
+        inputs = self._parse_inputs()
+
+        indexToSet = stream._currentIndex
+
+        #         |     
+        # ...(...)...;
+
+        if stream.current.type == Token.tok_semicolon:
+        #         |     
+        # ...(...);
+
+
+
+            stream._currentIndex = openParamsIndex
+            stream.prev()
+
+            ret = []
+            while stream.prev():
+
+                if stream.current.type != Token.tok_semicolon and \
+                stream.current.type != Token.tok_opening_bracket and \
+                stream.current.type != Token.tok_closing_bracket:
+                    ret.append(stream.current.content)
+                else:
+                    break
+
+            r = ""
+            for i in ret:
+                r+=i
+
+            stream._currentIndex = indexToSet
+            return MethodExpr(method_name, inputs, r, "")
+
+        if stream.current.content == 'const' and stream.seek(1).type == Token.tok_semicolon:
+        #            |     
+        # ...(...) const;
+            pass
+
+
+
+
+        return None
 
 
     def _parse_Ctor(self, Context):
@@ -47,7 +98,7 @@ class AbstractTreeBuilder:
         # A(...);
 
         if stream.current.type == Token.tok_semicolon:
-            return ctorNode(Context.name, inputs)
+            return CtorExpr(Context.name, inputs)
 
         return None
 
@@ -58,56 +109,65 @@ class AbstractTreeBuilder:
         # A& operator=(...);
 
         stream = self._stream
-        origIndex = stream._currentIndex
+        savedIndex = stream._currentIndex
 
         if stream.seek(-2).content == 'operator':
 
 
             inputs = self._parse_inputs()
+            indexToRet = stream._currentIndex
 
             if stream.current.type == Token.tok_semicolon:
                 
-                stream._currentIndex = origIndex
+                stream._currentIndex = savedIndex
                 if stream.seek(-3).content == 'void':
-                    return AssignOp(inputs, "void")
+                    op = AssignOpExpr(inputs, "void")
+                    stream._currentIndex = indexToRet
+                    return op
 
                 if stream.seek(-3).type == Token.tok_ref and\
                     stream.seek(-4).content == Context.name:
-                    return AssignOp(inputs, stream.seek(-4).content + stream.seek(-3).content)
-
-
+                    op = AssignOpExpr(inputs, stream.seek(-4).content + stream.seek(-3).content)
+                    stream._currentIndex = indexToRet
+                    return op
         return None
 
 
-
-    def TryHard(self, Context = None):
+    # called when current token is '('
+    def Parse_Expression(self, Context = None):
     
         #      |
         #   ...(...)...;
         stream = self._stream
         identifier = stream.seek(-1).content
-        origIndex = stream._currentIndex
-        objToRet = None
 
+        # In class
         if Context:
             # in class
 
-            # 1. Ctor
+            # Ctor / CopyCtor
             #  |
             # A(...);
             if identifier == Context.name:
-                objToRet = self._parse_Ctor(Context)
+                return self._parse_Ctor(Context)
                
             # Copy Assignment
             #             |
             # A& operator=(...);
             if identifier == r'=':
-                objToRet = self._parse_AssignOp(Context)
+                return self._parse_AssignOp(Context)
 
-    
-        stream._currentIndex = origIndex
-        return objToRet
+            # Method
+            #            |   
+            # void method(...);
+            # ( identifier | none ) identifier identifier(...) ( const | none );
+            if identifier != Context.name:
+                return self._parse_method(identifier)
 
+        # function
+        else:
+            pass
+                
 
        
 

@@ -41,12 +41,10 @@ class AbstractTreeBuilder:
     def _parse_method(self, method_name):
         stream = self._stream
 
-        openParamsIndex = stream._currentIndex
         #    |
         # ...(...);
         inputs = self._parse_inputs()
-
-        indexToSet = stream._currentIndex
+        stream.save()
 
         #         |     
         # ...(...)...;
@@ -55,9 +53,6 @@ class AbstractTreeBuilder:
         #         |     
         # ...(...);
 
-
-
-            stream._currentIndex = openParamsIndex
             stream.prev()
 
             ret = []
@@ -74,7 +69,7 @@ class AbstractTreeBuilder:
             for i in ret:
                 r+=i
 
-            stream._currentIndex = indexToSet
+            stream.load()
             return MethodExpr(method_name, inputs, r, "")
 
         if stream.current.content == 'const' and stream.seek(1).type == Token.tok_semicolon:

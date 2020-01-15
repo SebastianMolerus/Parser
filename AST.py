@@ -1,5 +1,4 @@
 from TokenStream import TokenStream
-
 from TokenReader import TokenType
 from TokenReader import Token
 

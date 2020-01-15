@@ -83,7 +83,7 @@ class TokenReader:
             self.CharStream.append(' ')
             self.CharStream.append('e')
             self.CharStream.append('0')
-            self.CharStream.append('f')
+            self.CharStream.append('f') 
             self.CharStream.append('$')
             return
  
@@ -130,41 +130,41 @@ class TokenReader:
             return self.GetToken()
     
         if self.identifier == r"namespace":
-            return Token(TokenType._namespace)
+            return Token(TokenType._namespace, "namespace")
         if self.identifier == r"class":
-            return Token(TokenType._class)
+            return Token(TokenType._class, "class")
         if self.identifier == r"struct":
-            return Token(TokenType._struct)
+            return Token(TokenType._struct, "struct")
         if self.identifier == r";":
-            return Token(TokenType._semicolon)
+            return Token(TokenType._semicolon, ";")
         if self.identifier == r":":
-            return Token(TokenType._colon)
+            return Token(TokenType._colon, ":")
         if self.identifier == r"{":
-            return Token(TokenType._opening_bracket)
+            return Token(TokenType._opening_bracket, "{")
         if self.identifier == r"}":
-            return Token(TokenType._closing_bracket)
+            return Token(TokenType._closing_bracket, "}")
         if self.identifier == r"(":
-            return Token(TokenType._params_begin)
+            return Token(TokenType._params_begin, "(")
         if self.identifier == r")":
-            return Token(TokenType._params_end)
+            return Token(TokenType._params_end, ")")
         if self.identifier == r"public":
-            return Token(TokenType._public)
+            return Token(TokenType._public, "public")
         if self.identifier == r"private":
-            return Token(TokenType._private)
+            return Token(TokenType._private, "private")
         if self.identifier == r"protected":
-            return Token(TokenType._protected)
+            return Token(TokenType._protected, "protected")
         if self.identifier == r",":
-            return Token(TokenType._comma)
+            return Token(TokenType._comma, ",")
         if self.identifier == r"*":
-            return Token(TokenType._star)
+            return Token(TokenType._star, "*")
         if self.identifier == r"&":
-            return Token(TokenType._ref)
+            return Token(TokenType._ref, "&")
         if self.identifier == r"~":
-            return Token(TokenType._tilde)
+            return Token(TokenType._tilde, "~")
         if self.identifier == r"const":
-            return Token(TokenType._const)
+            return Token(TokenType._const, "const")
         if self.identifier == r"=":
-            return Token(TokenType._equal)
+            return Token(TokenType._equal, "=")
 
         if self.identifier == r"e0f":
             return Token(TokenType._eof)

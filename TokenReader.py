@@ -49,8 +49,7 @@ class CharStream:
 
     def isAlnum(self):
         return (self.lastChar.isalnum() or \
-                self.lastChar == '_'    or \
-                self.lastChar == ':')
+                self.lastChar == '_')
 
 # -----------------------------------------------------------------
 # Class representing Token

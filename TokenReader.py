@@ -49,8 +49,7 @@ class CharStream:
         """For our purposes _ is treated as alphanumerical for uint_32
            ':' for Foo::Bar"""
         return (self.lastChar.isalnum() or \
-                self.lastChar == '_'    or \
-                self.lastChar == ':')
+                self.lastChar == '_')
 
 
 class Token:

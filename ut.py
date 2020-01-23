@@ -1,30 +1,35 @@
 import unittest
 
+
 from TokenReader import TokenReader
 from TokenReader import TokenType
 
+
 # ------------------------------------------------------------
-# HELPER METHODS
+# ------------------- HELPER METHODS -------------------------
+
 
 def _TokenReader_get_all_tokens(TokenReader):
     tokens = []
     while True:
-        token = TokenReader.GetToken()
+        token = TokenReader.GetNextToken()
         if token.type == TokenType._eof:
             break
         tokens.append(token)
 
     return tokens
 
+
 # ------------------------------------------------------------
-# TESTS
+# --------------------- TESTS --------------------------------
+
 
 class Test_TokenReader(unittest.TestCase):
-    def test_GetTokenClassForwardDeclared(self):
-        reader = TokenReader(Text="class A;")
-        token1 = reader.GetToken()
-        token2 = reader.GetToken()
-        token3 = reader.GetToken()
+    def test_GetNextTokenClassForwardDeclared(self):
+        reader = TokenReader(text="class A;")
+        token1 = reader.GetNextToken()
+        token2 = reader.GetNextToken()
+        token3 = reader.GetNextToken()
 
         self.assertEqual(token1.type, TokenType._class)
 
@@ -34,20 +39,22 @@ class Test_TokenReader(unittest.TestCase):
         self.assertEqual(token3.type, TokenType._semicolon)
         self.assertEqual(token3.content, ";")
 
-    def test_GetTokenCommented(self):
-        reader = TokenReader(Text="//class A;")
-        token1 = reader.GetToken()
+
+    def test_GetNextTokenCommented(self):
+        reader = TokenReader(text="//class A;")
+        token1 = reader.GetNextToken()
 
         self.assertEqual(token1.type, TokenType._eof)
 
-    def test_GetTokenClassDefinition(self):
-        reader = TokenReader(Text=r"//class A;    \n\
-                                    class B{};     ")
-        token1 = reader.GetToken()
-        token2 = reader.GetToken()
-        token3 = reader.GetToken()
-        token4 = reader.GetToken()
-        token5 = reader.GetToken()
+
+    def test_GetNextTokenClassDefinition(self):
+        reader = TokenReader(text=""" //class A;
+                                      class B{};     """)
+        token1 = reader.GetNextToken()
+        token2 = reader.GetNextToken()
+        token3 = reader.GetNextToken()
+        token4 = reader.GetNextToken()
+        token5 = reader.GetNextToken()
 
         self.assertEqual(token1.type, TokenType._class)
 
@@ -60,8 +67,9 @@ class Test_TokenReader(unittest.TestCase):
 
         self.assertEqual(token5.type, TokenType._semicolon)
 
-    def test_GetTokenMethodDefinition1(self):
-        reader = TokenReader(Text=r"void Foo::Bar(uint32_t& ref, int * ptr) const;")
+
+    def test_GetNextTokenMethodDefinition1(self):
+        reader = TokenReader(text=r"void Foo::Bar(uint32_t& ref, int * ptr) const;")
         tokens = _TokenReader_get_all_tokens(reader)
 
         self.assertEqual(len(tokens), 13)
@@ -105,9 +113,10 @@ class Test_TokenReader(unittest.TestCase):
         self.assertEqual(tokens[12].type, TokenType._semicolon)
         self.assertEqual(tokens[12].content, ";")
 
-    def test_GetTokenEoF(self):
-        reader = TokenReader(Text=r"//void Foo::Bar(uint32_t& ref, int * ptr) const;")
-        token = reader.GetToken()
+
+    def test_GetNextTokenEoF(self):
+        reader = TokenReader(text=r"//void Foo::Bar(uint32_t& ref, int * ptr) const;")
+        token = reader.GetNextToken()
 
         self.assertEqual(token.type, TokenType._eof)
         self.assertEqual(token.content, "")

@@ -1,7 +1,6 @@
 import enum
 
-# -----------------------------------------------------------------
-# possible types of token
+
 class TokenType(enum.Enum): 
     _identifier      =   1,
     _namespace       =   2,
@@ -25,8 +24,7 @@ class TokenType(enum.Enum):
     _const           =   20,
     _equal           =   21
 
-# -----------------------------------------------------------------
-# helper class for TokenStream
+
 class CharStream:
     def __init__(self):
         self.buffer = []
@@ -48,12 +46,13 @@ class CharStream:
         self.buffer.insert(0, char)
 
     def isAlnum(self):
+        """For our purposes _ is treated as alphanumerical for uint_32
+           ':' for Foo::Bar"""
         return (self.lastChar.isalnum() or \
                 self.lastChar == '_'    or \
                 self.lastChar == ':')
 
-# -----------------------------------------------------------------
-# Class representing Token
+
 class Token:
     def __init__(self, type, content = ""):
         self._type = type
@@ -62,22 +61,31 @@ class Token:
     @property
     def type(self):
         return self._type
-    
+
     @property
     def content(self):
         return self._content
 
-# -----------------------------------------------------------------
-# Main class used to getting tokens
+
 class TokenReader:
-    def __init__(self, fileName = None, Text = None):
+    """Class used for getting tokens from file or text. """
+
+    def __init__(self, fileName = None, text = None):
+        """ Initialize with fileName or text, not both.
+
+        Args:
+            fileName: path to file to read tokens from.
+
+            text:     cpp code to read tokens from.
+
+        """
         self.CharStream = CharStream()
 
-        if Text and fileName:
-            raise Exception("Defined two resources of data")
+        if text and fileName:
+            raise Exception("Defined two resources of data.")
 
-        if Text:
-            for char in Text: 
+        if text:
+            for char in text: 
                 self.CharStream.append(char)
             self.CharStream.append('\n')
             self.CharStream.append(' ')
@@ -98,7 +106,14 @@ class TokenReader:
             self.CharStream.append('f')
             self.CharStream.append('$')
 
-    def GetToken(self):
+
+    def GetNextToken(self):
+        """Method used to get next token.
+        
+        returns: Token with corresponding type and content.
+                 Last returned Token type is _eof.
+                 
+        """
 
         self.identifier = ' '
 
@@ -119,7 +134,7 @@ class TokenReader:
             if self.CharStream.pop() == '/':
                 while self.CharStream.pop() != '\n':
                     pass
-                return self.GetToken()
+                return self.GetNextToken()
             else:
                 raise Exception("Expected / after /.")
 
@@ -127,7 +142,7 @@ class TokenReader:
         if self.CharStream.lastChar == '#' or self.identifier == 'friend':
             while self.CharStream.pop() != '\n':
                 pass
-            return self.GetToken()
+            return self.GetNextToken()
     
         if self.identifier == r"namespace":
             return Token(TokenType._namespace, "namespace")

@@ -10,7 +10,7 @@ class AST:
 
         while self.tokenStream.next():
 
-            CurrentToken = self.tokenStream.current
+            CurrentToken = self.tokenStream.currentToken
 
             if CurrentToken.type == TokenType._eof:
                 return CurrentToken
@@ -27,8 +27,6 @@ class AST:
     def _currentType(self):
         return self.tokenStream.currentToken.type
 
-# -----------------------------------------------------------------
-# namespace parsing
     def ParseNamespace(self, context):
 
         # we have "namespace" already
@@ -72,8 +70,6 @@ class AST:
         # we have closing bracket
         return # TODO
 
-# -----------------------------------------------------------------
-# class parsing
     def ParseClass(self, context):
         # we have class already
         # go next

@@ -1,122 +1,155 @@
 from TokenStream import TokenStream
+
 from TokenReader import TokenType
 from TokenReader import Token
+from TokenReader import TokenReader
+
+from Expressions import NamespaceExpression
+from Expressions import ClassExpression
+from Expressions import Expression
 
 class AST:
     def __init__(self, tokenStream):
         self.tokenStream = tokenStream
 
-    def buildTree(self, context = None):
+
+    def _try_parse_expression(self, context = None):
+
+        CurrentToken = self.tokenStream.currentToken
+
+        if CurrentToken.type == TokenType._namespace:
+            return self._parse_namespace(context)
+
+        if CurrentToken.type == TokenType._class:
+            return self._parse_class(context)
+
+        if CurrentToken.type == TokenType._params_begin:
+            return self._parse_params(context)
+
+        return None
+
+
+    def build_ast(self):
+
+        ASTTree = Expression("Root")
 
         while self.tokenStream.next():
+            expr = self._try_parse_expression(ASTTree)
+            if expr:
+                ASTTree.Attach(expr)
 
-            CurrentToken = self.tokenStream.currentToken
+        return ASTTree
 
-            if CurrentToken.type == TokenType._eof:
-                return CurrentToken
 
-            if CurrentToken.type == TokenType._namespace:
-                return self.ParseNamespace(context)
-
-            if CurrentToken.type == TokenType._class:
-                return self.ParseClass(context)
-
-    def _currentContent(self):
-        return self.tokenStream.currentToken.content
-
-    def _currentType(self):
+    def _current_type(self):
         return self.tokenStream.currentToken.type
 
-    def ParseNamespace(self, context):
+
+    def _current_content(self):
+        return self.tokenStream.currentToken.content
+
+
+    def _parse_namespace(self, context):
 
         # we have "namespace" already
         # go next
         self.tokenStream.next()
 
         # consume identifier
-        if self._currentType() != TokenType._identifier:
+        if self._current_type() != TokenType._identifier:
             raise Exception("Identifier expected after namespace keyword")
 
         # we have identifier
-        namespaceIdentifier = self._currentContent()
-
+        parsed_namespace  = NamespaceExpression(self._current_content())
+        
         self.tokenStream.next()
 
-        # opening bracket consumed
-        if self._currentType() != TokenType._opening_bracket:
+        if self._current_type() != TokenType._opening_bracket:
             raise Exception("No opening brackets after namespace identifier")
 
         # currentToken == token.opening_brackets
 
-        self.tokenStream.next()
+        while self.tokenStream.next():
 
-        # we have something...
+            if self._current_type() == TokenType._closing_bracket:
+                break
 
-        # ...maybe empty namespace
-        if self._currentType() == TokenType._closing_bracket:
-            return namespaceIdentifier
-  
-        # ...maybe eof
-        if self._currentType() == TokenType._eof:
-            raise Exception("EOF before namespace closing bracket")
+            expr = self._try_parse_expression(parsed_namespace)
+            if not expr:
+                continue
+            print "Node {} added into {}.".format(expr._identifier ,parsed_namespace._identifier)
+            parsed_namespace.Attach(expr)
 
-        # ...continue till closing bracket
-        while self._currentType() != TokenType._closing_bracket:
-            
-            #parse more...
+        return parsed_namespace
 
-            self.tokenStream.next()
 
-        # we have closing bracket
-        return # TODO
-
-    def ParseClass(self, context):
+    def _parse_class(self, context):
         # we have class already
         # go next
         self.tokenStream.next()
 
         # consume identifier
-        if self._currentType() != TokenType._identifier:
+        if self._current_type() != TokenType._identifier:
             raise Exception("Identifier expected after class keyword")
 
         # we have identifier
-        className = self._currentContent()
+        parsedClass = ClassExpression(self._current_content())
 
         self.tokenStream.next()
 
         # we have something...
 
         # ...maybe forwarded class
-        if self._currentType() == TokenType._semicolon:
-            pass # TODO
-
+        if self._current_type() == TokenType._semicolon:
+            return None
 
         # ...move after opening bracket
-        while self._currentType() != TokenType._opening_bracket:
+        while self._current_type() != TokenType._opening_bracket:
             self.tokenStream.next()
 
         # currentToken == token.opening_brackets
 
-        self.tokenStream.next()
+        while self.tokenStream.next():
 
-        # we have something...
+            if self._current_type() == TokenType._closing_bracket:
+                break
 
-        # ... maybe empty class
-        if self._currentType() == TokenType._closing_bracket:
-            pass # TODO
+            expr = self._try_parse_expression(parsedClass)
+            if not expr:
+                continue
+            print "Node {} added into {}.".format(expr._identifier ,parsedClass._identifier)
+            parsedClass.Attach(expr)
 
-        # ... maybe eof
-        if self._currentType() == TokenType._eof:
-            raise Exception("EOF before class closing bracket")
+        return parsedClass
 
-        # ...continue till closing bracket
-        while self._currentType() != TokenType._closing_bracket:
 
-            #parse more...
+    def _parse_params(self, context):
+        """Used for parsing methods, ctors etc..."""
+        pass     
 
-            self.tokenStream.next()
 
-        # we have closing bracket
-        return # TODO
+p = TokenReader(text="""\
+    namespace NS0{
+	namespace NS1
+	{
+		class C1{};
+		class C2{class C12{}
+			class C4{
+				class C5{
+					class C6{
+					class C10;};
+				}
+			}
+			class C3;
+			class C7{}
+		}}}
 
-        
+    namespace NS4{
+        class C11{}
+    }
+    """)
+
+a = AST(TokenStream(p))
+
+expr =  a.build_ast()
+print expr

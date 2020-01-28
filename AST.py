@@ -8,7 +8,7 @@ from Expressions import NamespaceExpression
 from Expressions import ClassExpression
 from Expressions import Expression
 
-class AST:
+class AbstractTreeBuilder:
     def __init__(self, tokenStream):
         self.tokenStream = tokenStream
 
@@ -35,8 +35,8 @@ class AST:
 
         while self.tokenStream.next():
             expr = self._try_parse_expression(ASTTree)
-            if expr:
-                ASTTree.Attach(expr)
+            if expr is not None:
+                ASTTree.attach(expr)
 
         return ASTTree
 
@@ -71,14 +71,15 @@ class AST:
 
         while self.tokenStream.next():
 
+            # we're done
             if self._current_type() == TokenType._closing_bracket:
                 break
 
             expr = self._try_parse_expression(parsed_namespace)
-            if not expr:
+            if expr is None:
                 continue
             print "Node {} added into {}.".format(expr._identifier ,parsed_namespace._identifier)
-            parsed_namespace.Attach(expr)
+            parsed_namespace.attach(expr)
 
         return parsed_namespace
 
@@ -111,14 +112,15 @@ class AST:
 
         while self.tokenStream.next():
 
+            # we're done
             if self._current_type() == TokenType._closing_bracket:
                 break
 
             expr = self._try_parse_expression(parsedClass)
-            if not expr:
+            if expr is None:
                 continue
             print "Node {} added into {}.".format(expr._identifier ,parsedClass._identifier)
-            parsedClass.Attach(expr)
+            parsedClass.attach(expr)
 
         return parsedClass
 
@@ -126,30 +128,3 @@ class AST:
     def _parse_params(self, context):
         """Used for parsing methods, ctors etc..."""
         pass     
-
-
-p = TokenReader(text="""\
-    namespace NS0{
-	namespace NS1
-	{
-		class C1{};
-		class C2{class C12{}
-			class C4{
-				class C5{
-					class C6{
-					class C10;};
-				}
-			}
-			class C3;
-			class C7{}
-		}}}
-
-    namespace NS4{
-        class C11{}
-    }
-    """)
-
-a = AST(TokenStream(p))
-
-expr =  a.build_ast()
-print expr

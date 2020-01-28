@@ -25,8 +25,12 @@ class Expression(object, Node):
 
     def __str__(self):
         return self._print_all()
-    
 
+
+    def __eq__(self, expr):
+        return self._identifier == expr._identifier
+
+    
 class ClassExpression(Expression):
     def __init__(self, identifier):
         Expression.__init__(self, identifier)
@@ -38,7 +42,7 @@ class NamespaceExpression(Expression):
 
 
 class MethodExpression(Expression):
-    def __init__(self, identifier, parameters, returns, const = False):
+    def __init__(self, identifier, parameters, returns, constness):
         Expression.__init__(identifier)
 
 

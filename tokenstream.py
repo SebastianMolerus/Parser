@@ -7,7 +7,7 @@ class TokenStream:
         self._cache = []
 
         while True:
-            token = parser.GetNextToken()
+            token = parser.get_next_token()
             self._cache.append(token)
             if token.type == TokenType._eof:
                 break

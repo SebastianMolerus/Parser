@@ -34,18 +34,18 @@ class CharStream:
         self.buffer.append(char)
     
     def pop(self):
-        if self.isEmpty():
+        if self.is_empty():
             raise Exception("Pop on empty CharStream")
         self.lastChar = self.buffer.pop(0)
         return self.lastChar
 
-    def isEmpty(self):
+    def is_empty(self):
         return len(self.buffer) == 0
 
     def push(self, char):
         self.buffer.insert(0, char)
 
-    def isAlnum(self):
+    def is_alnum(self):
         """For our purposes _ is treated as alphanumerical for uint_32
            ':' for Foo::Bar"""
         return (self.lastChar.isalnum() or \
@@ -106,7 +106,7 @@ class TokenReader:
             self.CharStream.append('$')
 
 
-    def GetNextToken(self):
+    def get_next_token(self):
         """Method used to get next token.
         
         returns: Token with corresponding type and content.
@@ -121,9 +121,9 @@ class TokenReader:
             self.identifier = self.CharStream.pop()
 
         # process alnums 
-        while self.CharStream.isAlnum():
+        while self.CharStream.is_alnum():
             self.CharStream.pop()
-            if self.CharStream.isAlnum():
+            if self.CharStream.is_alnum():
                 self.identifier+=self.CharStream.lastChar
             else:
                 self.CharStream.push(self.CharStream.lastChar)
@@ -133,7 +133,7 @@ class TokenReader:
             if self.CharStream.pop() == '/':
                 while self.CharStream.pop() != '\n':
                     pass
-                return self.GetNextToken()
+                return self.get_next_token()
             else:
                 raise Exception("Expected / after /.")
 
@@ -141,7 +141,7 @@ class TokenReader:
         if self.CharStream.lastChar == '#' or self.identifier == 'friend':
             while self.CharStream.pop() != '\n':
                 pass
-            return self.GetNextToken()
+            return self.get_next_token()
     
         if self.identifier == r"namespace":
             return Token(TokenType._namespace, "namespace")

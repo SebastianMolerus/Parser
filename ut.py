@@ -2,7 +2,7 @@ import unittest
 
 from AST import AbstractTreeBuilder
 
-from TokenStream import TokenStream
+from tokenstream import TokenStream
 
 from TokenReader import TokenReader
 from TokenReader import TokenType
@@ -11,7 +11,7 @@ from Expressions import Expression
 from Expressions import NamespaceExpression
 from Expressions import ClassExpression
 
-from Nodes import Node
+from nodes import Node
 
 
 # ------------------------------------------------------------
@@ -205,6 +205,41 @@ class Test_TokenReader(unittest.TestCase):
         
         self.assertEqual(tokens[13].type, TokenType._semicolon)
         self.assertEqual(tokens[13].content, ";")
+
+    def test_GetDesctructorInsideClass(self):
+        reader = TokenReader(text="""class Foo {
+                                     ~Foo();
+                                };""")
+        tokens = _TokenReader_get_all_tokens(reader)
+        self.assertEqual(tokens[0].type, TokenType._class)
+        self.assertEqual(tokens[0].content, "class")
+
+        self.assertEqual(tokens[1].type, TokenType._identifier)
+        self.assertEqual(tokens[1].content, "Foo")
+
+        self.assertEqual(tokens[2].type, TokenType._opening_bracket)
+        self.assertEqual(tokens[2].content, "{")
+
+        self.assertEqual(tokens[3].type, TokenType._tilde)
+        self.assertEqual(tokens[3].content, "~")
+
+        self.assertEqual(tokens[4].type, TokenType._identifier)
+        self.assertEqual(tokens[4].content, "Foo")
+
+        self.assertEqual(tokens[5].type, TokenType._params_begin)
+        self.assertEqual(tokens[5].content, "(")
+
+        self.assertEqual(tokens[6].type, TokenType._params_end)
+        self.assertEqual(tokens[6].content, ")")
+
+        self.assertEqual(tokens[7].type, TokenType._semicolon)
+        self.assertEqual(tokens[7].content, ";")
+
+        self.assertEqual(tokens[8].type, TokenType._closing_bracket)
+        self.assertEqual(tokens[8].content, "}")
+
+        self.assertEqual(tokens[9].type, TokenType._semicolon)
+        self.assertEqual(tokens[9].content, ";")
 
 
 class Test_AbstractTreeBuilder(unittest.TestCase):

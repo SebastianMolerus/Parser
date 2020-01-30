@@ -1,4 +1,4 @@
-from TokenStream import TokenStream
+from tokenstream import TokenStream
 
 from TokenReader import TokenType
 from TokenReader import Token
@@ -6,12 +6,13 @@ from TokenReader import TokenReader
 
 from Expressions import NamespaceExpression
 from Expressions import ClassExpression
+from Expressions import CTorExpression
+from Expressions import DTorExpression
 from Expressions import Expression
 
 class AbstractTreeBuilder:
     def __init__(self, tokenStream):
         self.tokenStream = tokenStream
-
 
     def _try_parse_expression(self, context = None):
 
@@ -26,8 +27,10 @@ class AbstractTreeBuilder:
         if CurrentToken.type == TokenType._params_begin:
             return self._parse_params(context)
 
-        return None
+        if CurrentToken.type == TokenType._tilde:
+            return self._parse_dtor(context)
 
+        return None
 
     def build_ast(self):
 
@@ -115,7 +118,6 @@ class AbstractTreeBuilder:
             # we're done
             if self._current_type() == TokenType._closing_bracket:
                 break
-
             expr = self._try_parse_expression(parsedClass)
             if expr is None:
                 continue
@@ -127,4 +129,93 @@ class AbstractTreeBuilder:
 
     def _parse_params(self, context):
         """Used for parsing methods, ctors etc..."""
-        pass     
+        self._parse_ctor(context)
+
+    def _parse_ctor(self, context):
+        cTorName = context._identifier + "()"
+        strParams = ''
+        if self._giveMethodName() != context._identifier:
+            return None
+
+        if self._current_type() != TokenType._params_begin:
+            return None
+        self.tokenStream.next()
+
+        while self._current_type() != TokenType._params_end:
+            #Ugly?! I know that... ;d
+            if (self._current_type() == TokenType._ref) or (self._current_type() == TokenType._star):
+                pass
+            else:
+                strParams += ' '
+            strParams += self._current_content()
+            self.tokenStream.next()
+        self.tokenStream.next()
+
+        if self._current_type() == TokenType._semicolon:
+            parsedCtor = CTorExpression(cTorName, strParams)
+            context.attach(parsedCtor)
+        else:
+            while self._current_type() != TokenType._closing_bracket:
+                self.tokenStream.next()
+
+    def _parse_dtor(self, context):
+        dTorName = "~" + context._identifier + "()"
+
+        if self._current_type() != TokenType._tilde:
+            return None
+        self.tokenStream.next()
+        self.tokenStream.next()
+
+        if self._current_type() != TokenType._params_begin:
+            return None
+        
+        while self._current_type() != TokenType._params_end:
+            self.tokenStream.next()
+
+        self.tokenStream.next()
+
+        if self._current_type() == TokenType._semicolon:
+            parsedDtor = DTorExpression(dTorName)
+            context.attach(parsedDtor)
+        else:
+            while self._current_type() != TokenType._closing_bracket:
+                self.tokenStream.next()
+
+    def _giveMethodName(self):
+        methodName = ''
+        if self._current_type() == TokenType._params_begin:
+            self.tokenStream.prev()
+            methodName += self._current_content()
+            self.tokenStream.next()
+        return methodName
+
+# p = TokenReader(text="""\
+#     namespace NS0{
+# 	namespace NS1
+# 	{
+# 		class C1{};
+# 		class C2{class C12{}
+# 			class C4{
+#                 Hello();
+#                 C4(int a, int* pWsk, char &ref);
+#                 ~C4();
+
+# 				class C5{
+# 					class C6{
+#                         C6 {}
+# 					class C10;};
+# 				}
+# 			}
+# 			class C3;
+# 			class C7{}
+# 		}}}
+
+#     namespace NS4{
+#         class C11{}
+#     }
+#     """)
+
+# a = AbstractTreeBuilder(TokenStream(p))
+
+# expr =  a.build_ast()
+# print expr

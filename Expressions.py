@@ -1,4 +1,4 @@
-from Nodes import Node
+from nodes import Node
 
 class Expression(object, Node):
     def __init__(self, identifier):
@@ -35,14 +35,19 @@ class ClassExpression(Expression):
     def __init__(self, identifier):
         Expression.__init__(self, identifier)
 
-
 class NamespaceExpression(Expression):
     def __init__(self, identifier):
         Expression.__init__(self, identifier)
-
 
 class MethodExpression(Expression):
     def __init__(self, identifier, parameters, returns, constness):
         Expression.__init__(identifier)
 
+class CTorExpression(Expression):
+    def __init__(self, identifier, parameters):
+        Expression.__init__(self, identifier)
+        self.parameters = parameters
 
+class DTorExpression(Expression):
+    def __init__(self, identifier):
+        Expression.__init__(self, identifier)

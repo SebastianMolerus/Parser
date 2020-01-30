@@ -14,7 +14,17 @@ class AbstractTreeBuilder:
     def __init__(self, tokenStream):
         self.tokenStream = tokenStream
 
+
     def _try_parse_expression(self, context = None):
+        '''Main dispatch method for all expresions.
+        
+        Every method called from here should return 
+        
+        Expression if parsed succesfull
+
+        or None
+        
+        '''
 
         CurrentToken = self.tokenStream.currentToken
 
@@ -32,6 +42,7 @@ class AbstractTreeBuilder:
 
         return None
 
+
     def build_ast(self):
 
         ASTTree = Expression("Root")
@@ -45,10 +56,12 @@ class AbstractTreeBuilder:
 
 
     def _current_type(self):
+        '''Returns current token type eq: TokenType._eof, TokenType._identifier'''
         return self.tokenStream.currentToken.type
 
 
     def _current_content(self):
+        '''Returns current token content eq: Foo, uint32_t'''
         return self.tokenStream.currentToken.content
 
 
@@ -114,6 +127,9 @@ class AbstractTreeBuilder:
         # currentToken == token.opening_brackets
 
         while self.tokenStream.next():
+            
+            # take care of public, prot, private
+            parsedClass._set_scope_from_scope_token(self._current_type())
 
             # we're done
             if self._current_type() == TokenType._closing_bracket:
@@ -128,9 +144,22 @@ class AbstractTreeBuilder:
 
 
     def _parse_params(self, context):
-        """Used for parsing methods, ctors etc..."""
-        self._parse_ctor(context)
+        """Used as dispatch method for parsing
+        
+        everything from TokenType._params_begin
+        
+        """
 
+        parsedExpr = None
+
+        parsedExpr = self._parse_ctor(context) 
+        if parsedExpr:
+            return parsedExpr
+
+        parsedExpr = self._parse_method(context) 
+        if parsedExpr:
+            return parsedExpr
+            
 
     def _parse_ctor(self, context):
         cTorName = context._identifier + "()"
@@ -155,10 +184,12 @@ class AbstractTreeBuilder:
 
         if self._current_type() == TokenType._semicolon:
             parsedCtor = CTorExpression(cTorName, strParams)
-            context.attach(parsedCtor)
+            return parsedCtor
         else:
             while self._current_type() != TokenType._closing_bracket:
                 self.tokenStream.next()
+
+        return None
 
 
     def _parse_dtor(self, context):
@@ -184,6 +215,10 @@ class AbstractTreeBuilder:
         else:
             while self._current_type() != TokenType._closing_bracket:
                 self.tokenStream.next()
+
+            
+    def _parse_method(self, context):
+        pass
 
     # ja bym pomyslal nad inna nazwa poniewaz to jest dobre do uzycia w wielu miejscach
     # a nie zawsze zwraca Method Name

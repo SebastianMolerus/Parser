@@ -1,4 +1,6 @@
 from nodes import Node
+from TokenReader import TokenType
+
 
 class Expression(object, Node):
     def __init__(self, identifier):
@@ -34,6 +36,15 @@ class Expression(object, Node):
 class ClassExpression(Expression):
     def __init__(self, identifier):
         Expression.__init__(self, identifier)
+        self._currentScope = None
+
+
+    def _set_scope_from_scope_token(self, scope_token):
+        '''Sets current scope only if given token is about scope.'''
+        if scope_token == TokenType._public or \
+           scope_token == TokenType._private or \
+           scope_token == TokenType._protected:
+            self._currentScope = scope_token
 
 
 class NamespaceExpression(Expression):

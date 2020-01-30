@@ -59,6 +59,7 @@ class Token:
 
     @property
     def type(self):
+        '''Returns token type eq: TokenType._eof, TokenType._identifier'''
         return self._type
 
     @property

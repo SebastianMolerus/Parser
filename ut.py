@@ -297,7 +297,8 @@ class Test_AbstractTreeBuilder(unittest.TestCase):
 
         self.assertEqual(len(tree), 2)
         self.assertEqual(tree[0], ClassExpression('A'))
-        self.assertEqual(tree[1], CTorExpression('A', ''))
+        self.assertTrue(isinstance(tree[1], CTorExpression))
+        self.assertEqual(tree[0]._identifier, 'A()')
 
         # wedlug mnie identifikator kontruktora nie powinien byc A() tylko A
         # patrz test_TwoCtorsOneImplementedAnotherNot
@@ -406,8 +407,12 @@ class Test_AbstractTreeBuilder(unittest.TestCase):
 
         self.assertEqual(len(tree), 3)
         self.assertEqual(tree[0], ClassExpression('A'))
+
         self.assertEqual(tree[1], CTorExpression('A', ''))
-        self.assertEqual(tree[2], CTorExpression('A', 'int v'))
+        
+        self.assertTrue(isinstance(tree[2], CTorExpression))
+        self.assertEqual(tree[2].parameters, 'int v', "Parameters does not match.")
+        self.assertEqual(tree[2]._identifier, 'A', 'Ctor identifier does not match.')
 
 
     def test_CtorWithNewlinedParameters(self):
@@ -424,9 +429,49 @@ class Test_AbstractTreeBuilder(unittest.TestCase):
         tree = a.build_ast()
 
         self.assertEqual(len(tree), 2)
-        self.assertEqual(tree[0], ClassExpression('A'))
-        self.assertEqual(tree[1], CTorExpression('MegaPrzydatnaKlasa', 'int*& val1, SomeOtherType const& val2'))
+        self.assertEqual(tree[0], ClassExpression('MegaPrzydatnaKlasa'))
+        self.assertEqual(tree[1]._identifier, 'MegaPrzydatnaKlasa')
+        self.assertEqual(tree[1].parameters, 'int*& val1, SomeOtherType const& val2')
+        self.assertTrue(isinstance(tree[1], CTorExpression))
 
+
+    def test_CtorNoCtor(self):
+        reader = TokenReader(text="""
+        class Foo{
+            void Method();
+        """)
+
+        s = TokenStream(reader)
+        a = AbstractTreeBuilder(s)
+
+        tree = a.build_ast()
+
+        self.assertEqual(len(tree), 1)
+        self.assertEqual(tree[0], ClassExpression('Foo'))
+
+
+    def test_CtorTwoCtorsOneWithGarbageInside(self):
+        reader = TokenReader(text="""
+        class Foo{
+            Foo()
+            {
+                Foo* ptr = new Foo();
+                delete ptr;
+            }
+
+            Foo(int v);
+        """)
+
+        s = TokenStream(reader)
+        a = AbstractTreeBuilder(s)
+
+        tree = a.build_ast()
+
+        self.assertEqual(len(tree), 2)
+        self.assertEqual(tree[0], ClassExpression('Foo'))
+        self.assertEqual(tree[1]._identifier, 'Foo')
+        self.assertEqual(tree[1].parameters, 'int v')
+        self.assertTrue(isinstance(tree[1], CTorExpression))
 
 
     def test_DtorSimpleNotImplemented(self):

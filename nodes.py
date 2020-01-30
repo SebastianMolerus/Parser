@@ -26,7 +26,7 @@ class Node:
 
 
     def _get_flat_list(self, l):
-        '''Returns one list contains all elements.'''
+        '''Returns one flat list contains all elements to easy iterate.'''
         f = []
 
         for item in l:

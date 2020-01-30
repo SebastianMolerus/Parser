@@ -298,7 +298,7 @@ class Test_AbstractTreeBuilder(unittest.TestCase):
         self.assertEqual(len(tree), 2)
         self.assertEqual(tree[0], ClassExpression('A'))
         self.assertTrue(isinstance(tree[1], CTorExpression))
-        self.assertEqual(tree[0]._identifier, 'A()')
+        self.assertEqual(tree[1]._identifier, 'A')
 
         # wedlug mnie identifikator kontruktora nie powinien byc A() tylko A
         # patrz test_TwoCtorsOneImplementedAnotherNot

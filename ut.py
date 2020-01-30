@@ -7,9 +7,7 @@ from tokenstream import TokenStream
 from TokenReader import TokenReader
 from TokenReader import TokenType
 
-from Expressions import Expression
-from Expressions import NamespaceExpression
-from Expressions import ClassExpression
+from Expressions import *
 
 from nodes import Node
 
@@ -283,7 +281,154 @@ class Test_AbstractTreeBuilder(unittest.TestCase):
         self.assertEqual(len(tree), 2)
         self.assertEqual(tree[0], NamespaceExpression('N1'))
         self.assertEqual(tree[1], NamespaceExpression('N2'))
+
+
+    def test_CtorSimple(self):
+        reader = TokenReader(text="""
+        class A{
+            A();
+        };
+        """)
+
+        s = TokenStream(reader)
+        a = AbstractTreeBuilder(s)
+
+        tree = a.build_ast()
+
+        self.assertEqual(len(tree), 2)
+        self.assertEqual(tree[0], ClassExpression('A'))
+        self.assertEqual(tree[1], CTorExpression('A', ''))
+
+        # wedlug mnie identifikator kontruktora nie powinien byc A() tylko A
+        # patrz test_TwoCtorsOneImplementedAnotherNot
+
+
+    def test_CtorImplementedMethodSameAsNamespace(self):
+        reader = TokenReader(text="""
+        namespace A{
+            void A(){}
+        }
+        """)
+
+        s = TokenStream(reader)
+        a = AbstractTreeBuilder(s)
+
+        tree = a.build_ast()
+
+        self.assertEqual(len(tree),1)
+        self.assertEqual(tree[0], NamespaceExpression('A'))
+
+
+    def test_CtorNotImplementedMethodSameAsNamespace(self):
+        reader = TokenReader(text="""
+        namespace A{
+            void A();
+        };
+        """)
+
+        s = TokenStream(reader)
+        a = AbstractTreeBuilder(s)
+
+        tree = a.build_ast()
+
+        self.assertFalse(isinstance(tree[1], CTorExpression))
+
+        # mozna skompilowac taka sama nazwe metody jak klasa
+        # trzeba zabezpieczyc to czy context konstruktora to faktycznie klasa
+
+
+    def test_CtorWithOneParameter(self):
+        reader = TokenReader(text="""
+        class A{A(uint32_t& value1);};
+        """)
+
+        s = TokenStream(reader)
+        a = AbstractTreeBuilder(s)
+
+        tree = a.build_ast()
+
+        self.assertEqual(len(tree), 2)
+        self.assertEqual(tree[0], ClassExpression('A'))
+        self.assertEqual(tree[1], CTorExpression('A', 'uint32_t& value1')) 
+        # zakladam ze parametry zapisujemy w formie oryginalnej bez dodatkowych spacji
+        # do obgadania
+
     
+    def test_CtorWithTwoParameters(self):
+        reader = TokenReader(text="""
+        class A{A(uint32_t& value1, const uint32_t* value2);};
+        """)
+
+        s = TokenStream(reader)
+        a = AbstractTreeBuilder(s)
+
+        tree = a.build_ast()
+
+        self.assertEqual(len(tree), 2)
+        self.assertEqual(tree[0], ClassExpression('A'))
+        self.assertEqual(tree[1], CTorExpression('A', 'uint32_t& value1, const uint32_t* value2'))
+        # zakladam ze parametry zapisujemy w formie oryginalnej bez dodatkowych spacji
+        # do obgadania ( swiadome kopiuj wklej z testu wyzej )
+
+
+    def test_TwoCtorsOneImplementedAnotherNot(self):
+        reader = TokenReader(text="""
+        class A{A(){}A(int a);};
+        """)
+
+        s = TokenStream(reader)
+        a = AbstractTreeBuilder(s)
+
+        tree = a.build_ast()
+
+        self.assertEqual(len(tree), 2)
+        self.assertEqual(tree[0], ClassExpression('A'))
+        self.assertEqual(tree[1], CTorExpression('A', 'int a'))
+
+        # tutaj kolejny argument zeby identifikator by A a nie A()
+        # poniewaz tutaj wczytalo ze konstruktor z jednym parametrem
+        # A(int a) ma identyfikator A()
+        # jezeli chcemy indetyfikator w formie A(...) to po co nam parametry
+
+
+    def test_TwoCtorsImplemented(self):
+        reader = TokenReader(text="""
+        class A{
+            A();
+            A(int v);
+            };
+        """)
+
+        s = TokenStream(reader)
+        a = AbstractTreeBuilder(s)
+
+        tree = a.build_ast()
+
+        self.assertEqual(len(tree), 3)
+        self.assertEqual(tree[0], ClassExpression('A'))
+        self.assertEqual(tree[1], CTorExpression('A', ''))
+        self.assertEqual(tree[2], CTorExpression('A', 'int v'))
+
+
+    def test_DtorSimpleNotImplemented(self):
+        reader = TokenReader(text="""
+        class A{
+            void ~A();
+        };
+        """)
+
+        s = TokenStream(reader)
+        a = AbstractTreeBuilder(s)
+
+        tree = a.build_ast()
+
+        self.assertEqual(len(tree),2)
+        self.assertEqual(tree[0], ClassExpression('A'))
+        self.assertEqual(tree[1], DTorExpression('A'))
+
+        # wedlug mnie identyfikator destruktora tez powinien byc A nie ~A()
+        # do obgadania
+
 
 class Test_Node(unittest.TestCase):
 

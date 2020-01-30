@@ -28,7 +28,7 @@ class Expression(object, Node):
 
 
     def __eq__(self, expr):
-        return self._identifier == expr._identifier
+        return self._identifier == expr._identifier and isinstance(expr, type(self))
 
     
 class ClassExpression(Expression):
@@ -47,6 +47,9 @@ class CTorExpression(Expression):
     def __init__(self, identifier, parameters):
         Expression.__init__(self, identifier)
         self.parameters = parameters
+
+    def __eq__(self, expr):
+        return Expression.__eq__(self, expr) and self.parameters == expr.parameters
 
 class DTorExpression(Expression):
     def __init__(self, identifier):

@@ -131,18 +131,20 @@ class AbstractTreeBuilder:
         """Used for parsing methods, ctors etc..."""
         self._parse_ctor(context)
 
+
     def _parse_ctor(self, context):
         cTorName = context._identifier + "()"
         strParams = ''
+
         if self._giveMethodName() != context._identifier:
             return None
 
         if self._current_type() != TokenType._params_begin:
-            return None
+            return None # nie osiagalny kod chyba ze ktos spierdzieli giveMethodName
+
         self.tokenStream.next()
 
         while self._current_type() != TokenType._params_end:
-            #Ugly?! I know that... ;d
             if (self._current_type() == TokenType._ref) or (self._current_type() == TokenType._star):
                 pass
             else:
@@ -158,19 +160,21 @@ class AbstractTreeBuilder:
             while self._current_type() != TokenType._closing_bracket:
                 self.tokenStream.next()
 
+
     def _parse_dtor(self, context):
         dTorName = "~" + context._identifier + "()"
 
-        if self._current_type() != TokenType._tilde:
-            return None
+        if self._current_type() != TokenType._tilde: 
+            return None # Nigdy tu nie wejdziemy
+
         self.tokenStream.next()
         self.tokenStream.next()
 
         if self._current_type() != TokenType._params_begin:
-            return None
+            return None # Wedlug mnie tutaj Exception bo jak mamy ~ a tutaj nie bedzie params_begin to bedzie problem
         
         while self._current_type() != TokenType._params_end:
-            self.tokenStream.next()
+            self.tokenStream.next() # chyba nie ma destruktora z parametrami
 
         self.tokenStream.next()
 
@@ -181,6 +185,9 @@ class AbstractTreeBuilder:
             while self._current_type() != TokenType._closing_bracket:
                 self.tokenStream.next()
 
+    # ja bym pomyslal nad inna nazwa poniewaz to jest dobre do uzycia w wielu miejscach
+    # a nie zawsze zwraca Method Name
+    # moze np. get identifier from left albo cos takiego ?
     def _giveMethodName(self):
         methodName = ''
         if self._current_type() == TokenType._params_begin:
@@ -188,34 +195,3 @@ class AbstractTreeBuilder:
             methodName += self._current_content()
             self.tokenStream.next()
         return methodName
-
-# p = TokenReader(text="""\
-#     namespace NS0{
-# 	namespace NS1
-# 	{
-# 		class C1{};
-# 		class C2{class C12{}
-# 			class C4{
-#                 Hello();
-#                 C4(int a, int* pWsk, char &ref);
-#                 ~C4();
-
-# 				class C5{
-# 					class C6{
-#                         C6 {}
-# 					class C10;};
-# 				}
-# 			}
-# 			class C3;
-# 			class C7{}
-# 		}}}
-
-#     namespace NS4{
-#         class C11{}
-#     }
-#     """)
-
-# a = AbstractTreeBuilder(TokenStream(p))
-
-# expr =  a.build_ast()
-# print expr

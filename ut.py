@@ -410,6 +410,25 @@ class Test_AbstractTreeBuilder(unittest.TestCase):
         self.assertEqual(tree[2], CTorExpression('A', 'int v'))
 
 
+    def test_CtorWithNewlinedParameters(self):
+        reader = TokenReader(text="""
+        class MegaPrzydatnaKlasa{
+            MegaPrzydatnaKlasa(int*& val1,
+                               SomeOtherType const& val2);
+            };
+        """)
+
+        s = TokenStream(reader)
+        a = AbstractTreeBuilder(s)
+
+        tree = a.build_ast()
+
+        self.assertEqual(len(tree), 2)
+        self.assertEqual(tree[0], ClassExpression('A'))
+        self.assertEqual(tree[1], CTorExpression('MegaPrzydatnaKlasa', 'int*& val1, SomeOtherType const& val2'))
+
+
+
     def test_DtorSimpleNotImplemented(self):
         reader = TokenReader(text="""
         class A{

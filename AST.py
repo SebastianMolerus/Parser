@@ -211,10 +211,12 @@ class AbstractTreeBuilder:
 
         if self._current_type() == TokenType._semicolon:
             parsedDtor = DTorExpression(dTorName)
-            context.attach(parsedDtor)
+            return parsedDtor
         else:
             while self._current_type() != TokenType._closing_bracket:
                 self.tokenStream.next()
+
+        return None
 
             
     def _parse_method(self, context):

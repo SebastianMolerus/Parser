@@ -329,12 +329,9 @@ class Test_AbstractTreeBuilder(unittest.TestCase):
 
         tree = a.build_ast()
 
-        self.assertFalse(isinstance(tree[1], CTorExpression))
+        self.assertFalse(isinstance(tree[1], MethodExpression))
 
-        # mozna skompilowac taka sama nazwe metody jak klasa
-        # trzeba zabezpieczyc to czy context konstruktora to faktycznie klasa
         # Dziwne dlaczego to nie przechodzi ?!
-
 
     def test_CtorWithOneParameter(self):
         reader = TokenReader(text="""
@@ -476,6 +473,45 @@ class Test_AbstractTreeBuilder(unittest.TestCase):
         self.assertEqual(tree[0], ClassExpression('A'))
         self.assertEqual(tree[1], DTorExpression('A'))
 
+
+    def test_MethodParsingSimpleMethod(self):
+        reader = TokenReader(text="""
+        class Foo{
+            void Bar();
+        };
+        """)
+
+        s = TokenStream(reader)
+        a = AbstractTreeBuilder(s)
+
+        tree = a.build_ast()    
+
+        self.assertEqual(len(tree), 2)
+        self.assertTrue(isinstance(tree[1], MethodExpression))
+        self.assertEqual(tree[1]._identifier, 'Bar')
+        self.assertEqual(tree[1]._parameters, '')
+        self.assertEqual(tree[1]._returns, 'void')
+        self.assertFalse(tree[1]._constness)
+        
+
+    def test_MethodParsingSimpleMethodWithParameters(self):
+        reader = TokenReader(text="""
+        class Foo{
+            void Bar(int* a);
+        };
+        """)
+
+        s = TokenStream(reader)
+        a = AbstractTreeBuilder(s)
+
+        tree = a.build_ast()    
+
+        self.assertEqual(len(tree), 2)
+        self.assertTrue(isinstance(tree[1], MethodExpression))
+        self.assertEqual(tree[1]._identifier, 'Bar')
+        self.assertEqual(tree[1]._parameters, 'int* a')
+        self.assertEqual(tree[1]._returns, 'void')
+        self.assertFalse(tree[1]._constness)
 
 class Test_Node(unittest.TestCase):
 

@@ -9,6 +9,7 @@ from Expressions import ClassExpression
 from Expressions import CTorExpression
 from Expressions import DTorExpression
 from Expressions import Expression
+from Expressions import MethodExpression
 
 class AbstractTreeBuilder:
     def __init__(self, tokenStream):
@@ -150,8 +151,6 @@ class AbstractTreeBuilder:
         
         """
 
-        parsedExpr = None
-
         parsedExpr = self._parse_ctor(context) 
         if parsedExpr is not None:
             return parsedExpr
@@ -159,6 +158,8 @@ class AbstractTreeBuilder:
         parsedExpr = self._parse_method(context) 
         if parsedExpr is not None:
             return parsedExpr
+
+        return None
             
 
     def _parse_ctor(self, context):
@@ -217,10 +218,151 @@ class AbstractTreeBuilder:
 
         return None
 
-            
-    def _parse_method(self, context):
-        pass
 
+    def _get_all_valid_previous_tokens(self, not_valid_tokens, offset = 0):
+        '''This method returns list of all tokens parsed backward till
+           it reaches some of given not_valid_tokens.
+
+           offset value enables to move backward start point of parsing.
+        
+        '''
+        assert(offset >= 0)
+
+        if not_valid_tokens is None:
+            raise Exception("No arguments given.")
+
+        originalPositionToken = self.tokenStream.currentToken
+
+        howManySteps = offset
+
+        # move backward
+        while offset > 0:
+            assert(self.tokenStream.prev())
+            offset -= 1
+
+        result = []
+
+        while self.tokenStream.prev():
+            howManySteps += 1
+
+            # Not valid token
+            if self._current_type() in not_valid_tokens:
+                break
+
+            result.append(self.tokenStream.currentToken)
+
+        # move forward to original position
+        for i in range(howManySteps):
+            self.tokenStream.next()
+
+        # check for original position
+        assert(originalPositionToken is self.tokenStream.currentToken)
+
+        return result
+
+
+    def _get_all_valid_next_tokens(self, not_valid_tokens, offset = 0):
+        '''This method returns list of all tokens parsed forward till
+           it reaches some of given not_valid_tokens.
+
+           offset value enables to move forward start point of parsing.
+        
+        '''
+        assert(offset >= 0)
+
+        if not_valid_tokens is None:
+            raise Exception("No arguments given.")
+
+        originalPositionToken = self.tokenStream.currentToken
+
+        howManySteps = offset
+
+        # move forward
+        while offset > 0:
+            assert(self.tokenStream.next())
+            offset -= 1
+
+        result = []
+
+        while self.tokenStream.next():
+            howManySteps += 1
+
+            # Not valid token
+            if self._current_type() in not_valid_tokens:
+                break
+
+            result.append(self.tokenStream.currentToken)
+
+        # move backward to original position
+        for i in range(howManySteps):
+            self.tokenStream.prev()
+
+        # check for original position
+        assert(originalPositionToken is self.tokenStream.currentToken)
+
+        return result
+
+
+    def _parse_method(self, context):
+
+        if context is None:
+            return None
+
+        if not isinstance(context, ClassExpression):
+            return None
+
+        methodIdentifier = self._giveMethodName()
+
+        if methodIdentifier == context._identifier:
+            return None
+
+        methodReturnTokens = self._get_all_valid_previous_tokens( not_valid_tokens = [\
+            TokenType._semicolon,\
+            TokenType._colon,\
+            TokenType._opening_bracket,\
+            TokenType._closing_bracket],\
+            offset = 1)
+
+        methodReturns = [item.content for item in methodReturnTokens]
+
+        # at Params_begin
+
+        methodParamsTokens = self._get_all_valid_next_tokens(not_valid_tokens = [TokenType._params_end])
+        
+        methodParameters = [item.content for item in methodParamsTokens]
+
+        while self._current_type() != TokenType._params_end:
+            self.tokenStream.next()
+
+        # at Params_end
+        
+        methodConstToken = \
+            self._get_all_valid_next_tokens(not_valid_tokens = \
+                [TokenType._semicolon, TokenType._opening_bracket])
+
+        methodConstness = False
+        if len(methodConstToken) == 1 and methodConstToken[0].content == 'const':
+            methodConstness = True
+
+        self.tokenStream.next()
+
+        if methodConstness:
+            self.tokenStream.next()
+
+        if self._current_type() == TokenType._semicolon:
+            methodExpr = MethodExpression(methodIdentifier,
+                                          " ".join(methodParameters),
+                                          " ".join(methodReturns),
+                                          methodConstness)
+
+            return methodExpr
+        else:
+            while self._current_type() != TokenType._closing_bracket:
+                self.tokenStream.next()
+
+        return None 
+
+        
     # ja bym pomyslal nad inna nazwa poniewaz to jest dobre do uzycia w wielu miejscach
     # a nie zawsze zwraca Method Name
     # moze np. get identifier from left albo cos takiego ?

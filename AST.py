@@ -214,6 +214,7 @@ class AbstractTreeBuilder:
 
 
     def _parse_method(self, context):
+        '''Used for parsing class methods.'''
 
         if context is None:
             return None
@@ -234,13 +235,13 @@ class AbstractTreeBuilder:
             offset = 1)
 
         methodReturns = [item.content for item in methodReturnTokens]
+        strReturns = self._parseAndFormatParams(methodReturns)
 
         # at Params_begin
 
         methodParamsTokens = self._get_all_valid_next_tokens(not_valid_tokens = [TokenType._params_end])
         
         methodParameters = [item.content for item in methodParamsTokens]
-
         strParams = self._parseAndFormatParams(methodParameters)
 
         while self._current_type() != TokenType._params_end:
@@ -264,7 +265,7 @@ class AbstractTreeBuilder:
         if self._current_type() == TokenType._semicolon:
             methodExpr = MethodExpression(methodIdentifier,
                                           strParams,
-                                          " ".join(methodReturns),
+                                          strReturns,
                                           methodConstness)
 
             return methodExpr
@@ -344,6 +345,8 @@ class AbstractTreeBuilder:
 
         # check for original position
         assert(originalPositionToken is self.tokenStream.currentToken)
+
+        result.reverse()
 
         return result
 

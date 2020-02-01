@@ -202,3 +202,49 @@ class Test_AbstractTreeBuilder(unittest.TestCase):
         self.assertEqual(tree[1]._parameters, 'int* a')
         self.assertEqual(tree[1]._returns, 'void')
         self.assertFalse(tree[1]._constness)
+
+
+    def test_MethodParsingComplicatedReturnType(self):
+        tree = AbstractTreeBuilder(source_code="""
+        class Foo{
+            uint_32 const* Bar(int* a);
+        };
+        """).build_ast()  
+
+        self.assertEqual(len(tree), 2)
+        self.assertTrue(isinstance(tree[1], MethodExpression))
+        self.assertEqual(tree[1]._identifier, 'Bar')
+        self.assertEqual(tree[1]._parameters, 'int* a')
+        self.assertEqual(tree[1]._returns, 'uint_32 const*')
+        self.assertFalse(tree[1]._constness)
+
+
+    def test_MethodParsingReturnTypeWithColon(self):
+        tree = AbstractTreeBuilder(source_code="""
+        class Foo{
+            A::B const* Bar(int* a);
+        };
+        """).build_ast()  
+
+        self.assertEqual(len(tree), 2)
+        self.assertTrue(isinstance(tree[1], MethodExpression))
+        self.assertEqual(tree[1]._identifier, 'Bar')
+        self.assertEqual(tree[1]._parameters, 'int* a')
+        self.assertEqual(tree[1]._returns, 'A::B const*')
+        self.assertFalse(tree[1]._constness)
+
+
+    def test_MethodParsingReturnTypeAfterScopeWithColon(self):
+        tree = AbstractTreeBuilder(source_code="""
+        class Foo{
+            private:
+            G const* Bar(int* a);
+        };
+        """).build_ast()  
+
+        self.assertEqual(len(tree), 2)
+        self.assertTrue(isinstance(tree[1], MethodExpression))
+        self.assertEqual(tree[1]._identifier, 'Bar')
+        self.assertEqual(tree[1]._parameters, 'int* a')
+        self.assertEqual(tree[1]._returns, 'G const*')
+        self.assertFalse(tree[1]._constness)

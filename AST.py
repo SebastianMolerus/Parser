@@ -163,11 +163,15 @@ class AbstractTreeBuilder:
             
 
     def _parse_ctor(self, context):
+
+        if context is None:
+            return None
+
+        if not isinstance(context, ClassExpression):
+            return None
+        
         cTorName = context._identifier
         strParams = ''
-
-        if not isinstance(context,ClassExpression):
-            return None
 
         if self._giveMethodName() != context._identifier:
             return None

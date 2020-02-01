@@ -429,7 +429,7 @@ class Test_AbstractTreeBuilder(unittest.TestCase):
 
         tree = a.build_ast()
 
-        self.assertEqual(len(tree), 1)
+        self.assertEqual(len(tree), 2)
         self.assertEqual(tree[0], ClassExpression('Foo'))
 
 

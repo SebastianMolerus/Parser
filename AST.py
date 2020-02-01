@@ -151,10 +151,6 @@ class AbstractTreeBuilder:
         
         """
 
-        parsedExpr = None
-
-        tokenBeforeParsing = self.tokenStream.currentToken
-
         parsedExpr = self._parse_ctor(context) 
         if parsedExpr is not None:
             return parsedExpr
@@ -163,10 +159,7 @@ class AbstractTreeBuilder:
         if parsedExpr is not None:
             return parsedExpr
 
-        if not (tokenBeforeParsing is self.tokenStream.currentToken):
-            raise Exception("Token was moved without parsed object.")
-
-        return parsedExpr
+        return None
             
 
     def _parse_ctor(self, context):

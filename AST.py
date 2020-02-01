@@ -1,15 +1,7 @@
-from tokenstream import TokenStream
+from tokenstream import *
+from tokenreader import *
+from expressions import *
 
-from TokenReader import TokenType
-from TokenReader import Token
-from TokenReader import TokenReader
-
-from Expressions import NamespaceExpression
-from Expressions import ClassExpression
-from Expressions import CTorExpression
-from Expressions import DTorExpression
-from Expressions import Expression
-from Expressions import MethodExpression
 
 class AbstractTreeBuilder:
     def __init__(self, source_code = None, file = None):

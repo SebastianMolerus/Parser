@@ -230,7 +230,8 @@ class Test_AbstractTreeBuilder(unittest.TestCase):
         self.assertTrue(isinstance(tree[1], MethodExpression))
         self.assertEqual(tree[1]._identifier, 'Bar')
         self.assertEqual(tree[1]._parameters, 'int* a')
-        self.assertEqual(tree[1]._returns, 'A::B const*')
+        # tutaj mi zwraca A:: B const* -> musimy pomyslec nad metoda _parseAndFormatParams
+        self.assertEqual(tree[1]._returns, 'A::B const*') 
         self.assertFalse(tree[1]._constness)
 
 
@@ -247,4 +248,21 @@ class Test_AbstractTreeBuilder(unittest.TestCase):
         self.assertEqual(tree[1]._identifier, 'Bar')
         self.assertEqual(tree[1]._parameters, 'int* a')
         self.assertEqual(tree[1]._returns, 'G const*')
+        self.assertFalse(tree[1]._constness)
+
+
+    def test_MethodParsingReturnNamespaceAndTypeAfterScopeWithColon(self):
+        tree = AbstractTreeBuilder(source_code="""
+        class Foo{
+            private:
+            G::B const* Bar(int* a);
+        };
+        """).build_ast()  
+
+        self.assertEqual(len(tree), 2)
+        self.assertTrue(isinstance(tree[1], MethodExpression))
+        self.assertEqual(tree[1]._identifier, 'Bar')
+        self.assertEqual(tree[1]._parameters, 'int* a')
+        # tutaj mi zwraca A=G:: B const* -> musimy pomyslec nad metoda _parseAndFormatParams
+        self.assertEqual(tree[1]._returns, 'G::B const*')
         self.assertFalse(tree[1]._constness)

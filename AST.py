@@ -214,7 +214,11 @@ class AbstractTreeBuilder:
 
 
     def _parse_method(self, context):
-        '''Used for parsing class methods.'''
+        '''Used for parsing class methods.
+    
+        starting at params_begin token.
+
+        '''
 
         if context is None:
             return None
@@ -222,17 +226,16 @@ class AbstractTreeBuilder:
         if not isinstance(context, ClassExpression):
             return None
 
+        assert(self._current_type() == TokenType._params_begin)
+
         methodIdentifier = self._giveMethodName()
 
         if methodIdentifier == context._identifier:
             return None
 
-        methodReturnTokens = self._get_all_valid_previous_tokens( not_valid_tokens = [\
-            TokenType._semicolon,\
-            TokenType._colon,\
-            TokenType._opening_bracket,\
-            TokenType._closing_bracket],\
-            offset = 1)
+        # at Params_begin
+
+        methodReturnTokens = self._get_method_return_type()
 
         methodReturns = [item.content for item in methodReturnTokens]
         strReturns = self._parseAndFormatParams(methodReturns)
@@ -297,7 +300,7 @@ class AbstractTreeBuilder:
     def _parseAndFormatParams(self, methodParameters):
         strParams = ''
         for methodParam in methodParameters:
-            if (methodParam == '&') or (methodParam == '*'):
+            if (methodParam == '&') or (methodParam == '*') or (methodParam == ':'):
                 pass
             else:
                 strParams += ' '
@@ -404,3 +407,65 @@ class AbstractTreeBuilder:
             self.tokenStream.next()
         return methodName
 
+
+    def _get_method_return_type(self):
+        '''Get return type for method starting from params begin.
+        From caller perspective this method does not move tokenStream.
+        
+        Parsing backward and get all tokens as method return type.
+
+        if we get -> _opening_bracket, _closing_bracket or _semicolon we are done.
+
+        if we get -> _colon and prev() token is some of scope token (_public, _private, _protected)
+        we are done also, otherwise treat it as part of namespace and continue parsing.
+
+        '''
+
+        assert(self._current_type() == TokenType._params_begin)
+
+        stopParsingTokens = [TokenType._opening_bracket,
+                             TokenType._closing_bracket,
+                             TokenType._semicolon]
+
+        originalPositionToken = self.tokenStream.currentToken
+
+        # At method identifier
+        assert(self.tokenStream.prev())
+        howManySteps = 1
+
+        result = []
+
+        while self.tokenStream.prev():
+            howManySteps += 1
+
+            # We are done finally
+            if self._current_type() in stopParsingTokens:
+                break
+
+            # Are we done ?
+            if self._current_type() == TokenType._colon:
+                t1 = self.tokenStream.currentToken
+                assert(self.tokenStream.prev())
+                howManySteps+=1
+                # no this is namespace only
+                if self._current_type() == TokenType._colon:
+                    t2 = self.tokenStream.currentToken
+                    result.append(t1)
+                    result.append(t2)
+                    continue
+                # this is part of scope we are done
+                else:
+                    break
+              
+            result.append(self.tokenStream.currentToken)
+
+        # move forward to original position
+        for i in range(howManySteps):
+            self.tokenStream.next()
+
+        # check for original position
+        assert(originalPositionToken is self.tokenStream.currentToken)
+
+        result.reverse()
+
+        return result

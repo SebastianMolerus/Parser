@@ -151,17 +151,29 @@ class AbstractTreeBuilder:
         
         """
 
-        parsedExpr = self._parse_ctor(context) 
-        if parsedExpr is not None:
-            return parsedExpr
+        #Mozna sprobowac takie cos. To tylko przyklad ale smiga
+        if self._isCtor(context):
+            return self._parse_ctor(context)
+        else:
+            return self._parse_method(context) 
+ 
+        # parsedExpr = self._parse_ctor(context) 
+        # if parsedExpr is not None:
+        #     return parsedExpr
 
-        parsedExpr = self._parse_method(context) 
-        if parsedExpr is not None:
-            return parsedExpr
+        # parsedExpr = self._parse_method(context) 
+        # if parsedExpr is not None:
+        #     return parsedExpr
 
-        return None
+        #return None
+
+    def _isCtor(self,context):
+        if not isinstance(context, ClassExpression):
+            return False
+        if self._giveMethodName() != context._identifier:
+            return False
+        return True
             
-
     def _parse_ctor(self, context):
 
         if context is None:
@@ -175,31 +187,38 @@ class AbstractTreeBuilder:
 
         if self._giveMethodName() != context._identifier:
             return None
+        
+        # at Params_begin
+        methodParamsTokens = self._get_all_valid_next_tokens(not_valid_tokens = [TokenType._params_end])
+        
+        methodParameters = [item.content for item in methodParamsTokens]
 
-        self.tokenStream.next()
+        strParams = self._parseAndFormatMethodParams(methodParameters)
 
         while self._current_type() != TokenType._params_end:
-            if (self._current_type() == TokenType._ref) or (self._current_type() == TokenType._star):
-                pass
-            else:
-                strParams += ' '
-            strParams += self._current_content()
             self.tokenStream.next()
+        # at Params_end
+
         self.tokenStream.next()
-        strParams = strParams.replace(" ,",",")
-        strParams = strParams.strip()
-
-        print strParams
-
         if self._current_type() == TokenType._semicolon:
             parsedCtor = CTorExpression(cTorName, strParams)
             return parsedCtor
         else:
             while self._current_type() != TokenType._closing_bracket:
                 self.tokenStream.next()
-
         return None
 
+    def _parseAndFormatMethodParams(self, methodParameters):
+        strParams = ''
+        for methodParam in methodParameters:
+            if (methodParam == '&') or (methodParam == '*'):
+                pass
+            else:
+                strParams += ' '
+            strParams += methodParam
+        strParams = strParams.replace(" ,",",")
+        strParams = strParams.strip()
+        return strParams
 
     def _parse_dtor(self, context):
         dTorName = context._identifier
@@ -335,6 +354,8 @@ class AbstractTreeBuilder:
         
         methodParameters = [item.content for item in methodParamsTokens]
 
+        strParams = self._parseAndFormatMethodParams(methodParameters)
+
         while self._current_type() != TokenType._params_end:
             self.tokenStream.next()
 
@@ -355,7 +376,7 @@ class AbstractTreeBuilder:
 
         if self._current_type() == TokenType._semicolon:
             methodExpr = MethodExpression(methodIdentifier,
-                                          " ".join(methodParameters),
+                                          strParams,
                                           " ".join(methodReturns),
                                           methodConstness)
 
@@ -377,3 +398,4 @@ class AbstractTreeBuilder:
             methodName += self._current_content()
             self.tokenStream.next()
         return methodName
+

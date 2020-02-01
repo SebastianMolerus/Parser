@@ -298,9 +298,13 @@ class AbstractTreeBuilder:
             
 
     def _parseAndFormatParams(self, methodParameters):
+
+        # ta metode bym zmienil na taka co przyjmuje liste tokenow
+        # z zwraca string
+        # a dodatkowo ona z A::B robi A:: B
         strParams = ''
         for methodParam in methodParameters:
-            if (methodParam == '&') or (methodParam == '*') or (methodParam == ':'):
+            if (methodParam == '&') or (methodParam == '*'):
                 pass
             else:
                 strParams += ' '

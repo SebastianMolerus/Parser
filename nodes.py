@@ -4,12 +4,13 @@ class Node:
         self._father = father
         self._children = []
         self._flat_list = []
+        self._flat_list.append(self)
 
 
     def attach(self, node):
         node._father = self
         self._children.append(node)
-        self._flat_list = self._get_flat_list(self._children)
+        self.get_root()._flat_list.append(node)
     
 
     def get_father(self):
@@ -18,22 +19,11 @@ class Node:
 
     def get_root(self):
         ancestor = self.get_father()
-        root = None
+        root = self
         while ancestor:
             root = ancestor
             ancestor = ancestor.get_father()
         return root
-
-
-    def _get_flat_list(self, l):
-        '''Returns one flat list contains all elements to easy iterate.'''
-        f = []
-
-        for item in l:
-            f.append(item)
-            f.extend(self._get_flat_list(item._children))
-
-        return f
 
 
     def __iter__(self):

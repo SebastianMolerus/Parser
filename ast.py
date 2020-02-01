@@ -16,12 +16,15 @@ class AbstractTreeBuilder:
 
     def build_ast(self):
 
-        ASTTree = Expression("Root")
+        ASTTree = None
 
         while self.tokenStream.next():
             expr = self._try_parse_expression(ASTTree)
             if expr is not None:
-                ASTTree.attach(expr)
+                if ASTTree is None:
+                    ASTTree = expr
+                else:
+                    ASTTree.attach(expr)
 
         return ASTTree
 

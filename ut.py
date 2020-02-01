@@ -504,11 +504,12 @@ class Test_AbstractTreeBuilder(unittest.TestCase):
         tree = a.build_ast()    
 
         self.assertEqual(len(tree), 2)
+        self.assertTrue(isinstance(tree[1], MethodExpression))
         self.assertEqual(tree[1]._identifier, 'Bar')
         self.assertEqual(tree[1]._parameters, '')
         self.assertEqual(tree[1]._returns, 'void')
         self.assertFalse(tree[1]._constness)
-
+        
 
     def test_MethodParsingSimpleMethodWithParameters(self):
         reader = TokenReader(text="""
@@ -523,6 +524,7 @@ class Test_AbstractTreeBuilder(unittest.TestCase):
         tree = a.build_ast()    
 
         self.assertEqual(len(tree), 2)
+        self.assertTrue(isinstance(tree[1], MethodExpression))
         self.assertEqual(tree[1]._identifier, 'Bar')
         self.assertEqual(tree[1]._parameters, 'int* a')
         self.assertEqual(tree[1]._returns, 'void')

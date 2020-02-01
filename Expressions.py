@@ -36,7 +36,7 @@ class Expression(object, Node):
 class ClassExpression(Expression):
     def __init__(self, identifier):
         Expression.__init__(self, identifier)
-        self._currentScope = None
+        self._currentScope = TokenType._private
 
 
     def _set_scope_from_scope_token(self, scope_token):
@@ -54,7 +54,10 @@ class NamespaceExpression(Expression):
 
 class MethodExpression(Expression):
     def __init__(self, identifier, parameters, returns, constness):
-        Expression.__init__(identifier)
+        Expression.__init__(self, identifier)
+        self._parameters = parameters
+        self._returns = returns
+        self._constness = constness
 
 
 class CTorExpression(Expression):

@@ -300,9 +300,6 @@ class Test_AbstractTreeBuilder(unittest.TestCase):
         self.assertTrue(isinstance(tree[1], CTorExpression))
         self.assertEqual(tree[1]._identifier, 'A')
 
-        # wedlug mnie identifikator kontruktora nie powinien byc A() tylko A
-        # patrz test_TwoCtorsOneImplementedAnotherNot
-
 
     def test_CtorImplementedMethodSameAsNamespace(self):
         reader = TokenReader(text="""
@@ -336,6 +333,7 @@ class Test_AbstractTreeBuilder(unittest.TestCase):
 
         # mozna skompilowac taka sama nazwe metody jak klasa
         # trzeba zabezpieczyc to czy context konstruktora to faktycznie klasa
+        # Dziwne dlaczego to nie przechodzi ?!
 
 
     def test_CtorWithOneParameter(self):
@@ -351,10 +349,7 @@ class Test_AbstractTreeBuilder(unittest.TestCase):
         self.assertEqual(len(tree), 2)
         self.assertEqual(tree[0], ClassExpression('A'))
         self.assertEqual(tree[1], CTorExpression('A', 'uint32_t& value1')) 
-        # zakladam ze parametry zapisujemy w formie oryginalnej bez dodatkowych spacji
-        # do obgadania
-
-    
+ 
     def test_CtorWithTwoParameters(self):
         reader = TokenReader(text="""
         class A{A(uint32_t& value1, const uint32_t* value2);};
@@ -368,9 +363,6 @@ class Test_AbstractTreeBuilder(unittest.TestCase):
         self.assertEqual(len(tree), 2)
         self.assertEqual(tree[0], ClassExpression('A'))
         self.assertEqual(tree[1], CTorExpression('A', 'uint32_t& value1, const uint32_t* value2'))
-        # zakladam ze parametry zapisujemy w formie oryginalnej bez dodatkowych spacji
-        # do obgadania ( swiadome kopiuj wklej z testu wyzej )
-
 
     def test_TwoCtorsOneImplementedAnotherNot(self):
         reader = TokenReader(text="""
@@ -385,12 +377,6 @@ class Test_AbstractTreeBuilder(unittest.TestCase):
         self.assertEqual(len(tree), 2)
         self.assertEqual(tree[0], ClassExpression('A'))
         self.assertEqual(tree[1], CTorExpression('A', 'int a'))
-
-        # tutaj kolejny argument zeby identifikator by A a nie A()
-        # poniewaz tutaj wczytalo ze konstruktor z jednym parametrem
-        # A(int a) ma identyfikator A()
-        # jezeli chcemy indetyfikator w formie A(...) to po co nam parametry
-
 
     def test_TwoCtorsImplemented(self):
         reader = TokenReader(text="""
@@ -489,9 +475,6 @@ class Test_AbstractTreeBuilder(unittest.TestCase):
         self.assertEqual(len(tree),2)
         self.assertEqual(tree[0], ClassExpression('A'))
         self.assertEqual(tree[1], DTorExpression('A'))
-
-        # wedlug mnie identyfikator destruktora tez powinien byc A nie ~A()
-        # do obgadania
 
 
 class Test_Node(unittest.TestCase):

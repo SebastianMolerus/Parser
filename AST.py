@@ -153,23 +153,23 @@ class AbstractTreeBuilder:
         parsedExpr = None
 
         parsedExpr = self._parse_ctor(context) 
-        if parsedExpr:
+        if parsedExpr is not None:
             return parsedExpr
 
         parsedExpr = self._parse_method(context) 
-        if parsedExpr:
+        if parsedExpr is not None:
             return parsedExpr
             
 
     def _parse_ctor(self, context):
-        cTorName = context._identifier + "()"
+        cTorName = context._identifier
         strParams = ''
+
+        if not isinstance(context,ClassExpression):
+            return None
 
         if self._giveMethodName() != context._identifier:
             return None
-
-        if self._current_type() != TokenType._params_begin:
-            return None # nie osiagalny kod chyba ze ktos spierdzieli giveMethodName
 
         self.tokenStream.next()
 
@@ -181,6 +181,10 @@ class AbstractTreeBuilder:
             strParams += self._current_content()
             self.tokenStream.next()
         self.tokenStream.next()
+        strParams = strParams.replace(" ,",",")
+        strParams = strParams.strip()
+
+        print strParams
 
         if self._current_type() == TokenType._semicolon:
             parsedCtor = CTorExpression(cTorName, strParams)
@@ -193,20 +197,15 @@ class AbstractTreeBuilder:
 
 
     def _parse_dtor(self, context):
-        dTorName = "~" + context._identifier + "()"
-
-        if self._current_type() != TokenType._tilde: 
-            return None # Nigdy tu nie wejdziemy
+        dTorName = context._identifier
 
         self.tokenStream.next()
         self.tokenStream.next()
 
         if self._current_type() != TokenType._params_begin:
-            return None # Wedlug mnie tutaj Exception bo jak mamy ~ a tutaj nie bedzie params_begin to bedzie problem
+            raise Exception("Identifier expected correct destructor declaration")
         
-        while self._current_type() != TokenType._params_end:
-            self.tokenStream.next() # chyba nie ma destruktora z parametrami
-
+        self.tokenStream.next() 
         self.tokenStream.next()
 
         if self._current_type() == TokenType._semicolon:

@@ -12,8 +12,26 @@ from Expressions import Expression
 from Expressions import MethodExpression
 
 class AbstractTreeBuilder:
-    def __init__(self, tokenStream):
-        self.tokenStream = tokenStream
+    def __init__(self, source_code = None, file = None):
+
+        if source_code is not None:
+            self.tokenReader = TokenReader(text=source_code)
+        else:
+            self.tokenReader = TokenReader(fileName=file)
+
+        self.tokenStream = TokenStream(self.tokenReader)
+
+
+    def build_ast(self):
+
+        ASTTree = Expression("Root")
+
+        while self.tokenStream.next():
+            expr = self._try_parse_expression(ASTTree)
+            if expr is not None:
+                ASTTree.attach(expr)
+
+        return ASTTree
 
 
     def _try_parse_expression(self, context = None):
@@ -42,28 +60,6 @@ class AbstractTreeBuilder:
             return self._parse_dtor(context)
 
         return None
-
-
-    def build_ast(self):
-
-        ASTTree = Expression("Root")
-
-        while self.tokenStream.next():
-            expr = self._try_parse_expression(ASTTree)
-            if expr is not None:
-                ASTTree.attach(expr)
-
-        return ASTTree
-
-
-    def _current_type(self):
-        '''Returns current token type eq: TokenType._eof, TokenType._identifier'''
-        return self.tokenStream.currentToken.type
-
-
-    def _current_content(self):
-        '''Returns current token content eq: Foo, uint32_t'''
-        return self.tokenStream.currentToken.content
 
 
     def _parse_namespace(self, context):
@@ -167,13 +163,7 @@ class AbstractTreeBuilder:
 
         #return None
 
-    def _isCtor(self,context):
-        if not isinstance(context, ClassExpression):
-            return False
-        if self._giveMethodName() != context._identifier:
-            return False
-        return True
-            
+
     def _parse_ctor(self, context):
 
         if context is None:
@@ -193,7 +183,7 @@ class AbstractTreeBuilder:
         
         methodParameters = [item.content for item in methodParamsTokens]
 
-        strParams = self._parseAndFormatMethodParams(methodParameters)
+        strParams = self._parseAndFormatParams(methodParameters)
 
         while self._current_type() != TokenType._params_end:
             self.tokenStream.next()
@@ -208,17 +198,6 @@ class AbstractTreeBuilder:
                 self.tokenStream.next()
         return None
 
-    def _parseAndFormatMethodParams(self, methodParameters):
-        strParams = ''
-        for methodParam in methodParameters:
-            if (methodParam == '&') or (methodParam == '*'):
-                pass
-            else:
-                strParams += ' '
-            strParams += methodParam
-        strParams = strParams.replace(" ,",",")
-        strParams = strParams.strip()
-        return strParams
 
     def _parse_dtor(self, context):
         dTorName = context._identifier
@@ -240,6 +219,99 @@ class AbstractTreeBuilder:
                 self.tokenStream.next()
 
         return None
+
+
+    def _parse_method(self, context):
+
+        if context is None:
+            return None
+
+        if not isinstance(context, ClassExpression):
+            return None
+
+        methodIdentifier = self._giveMethodName()
+
+        if methodIdentifier == context._identifier:
+            return None
+
+        methodReturnTokens = self._get_all_valid_previous_tokens( not_valid_tokens = [\
+            TokenType._semicolon,\
+            TokenType._colon,\
+            TokenType._opening_bracket,\
+            TokenType._closing_bracket],\
+            offset = 1)
+
+        methodReturns = [item.content for item in methodReturnTokens]
+
+        # at Params_begin
+
+        methodParamsTokens = self._get_all_valid_next_tokens(not_valid_tokens = [TokenType._params_end])
+        
+        methodParameters = [item.content for item in methodParamsTokens]
+
+        strParams = self._parseAndFormatParams(methodParameters)
+
+        while self._current_type() != TokenType._params_end:
+            self.tokenStream.next()
+
+        # at Params_end
+        
+        methodConstToken = \
+            self._get_all_valid_next_tokens(not_valid_tokens = \
+                [TokenType._semicolon, TokenType._opening_bracket])
+
+        methodConstness = False
+        if len(methodConstToken) == 1 and methodConstToken[0].content == 'const':
+            methodConstness = True
+
+        self.tokenStream.next()
+
+        if methodConstness:
+            self.tokenStream.next()
+
+        if self._current_type() == TokenType._semicolon:
+            methodExpr = MethodExpression(methodIdentifier,
+                                          strParams,
+                                          " ".join(methodReturns),
+                                          methodConstness)
+
+            return methodExpr
+        else:
+            while self._current_type() != TokenType._closing_bracket:
+                self.tokenStream.next()
+
+        return None 
+
+
+    def _current_type(self):
+        '''Returns current token type eq: TokenType._eof, TokenType._identifier'''
+        return self.tokenStream.currentToken.type
+
+
+    def _current_content(self):
+        '''Returns current token content eq: Foo, uint32_t'''
+        return self.tokenStream.currentToken.content
+
+
+    def _isCtor(self,context):
+        if not isinstance(context, ClassExpression):
+            return False
+        if self._giveMethodName() != context._identifier:
+            return False
+        return True
+            
+
+    def _parseAndFormatParams(self, methodParameters):
+        strParams = ''
+        for methodParam in methodParameters:
+            if (methodParam == '&') or (methodParam == '*'):
+                pass
+            else:
+                strParams += ' '
+            strParams += methodParam
+        strParams = strParams.replace(" ,",",")
+        strParams = strParams.strip()
+        return strParams
 
 
     def _get_all_valid_previous_tokens(self, not_valid_tokens, offset = 0):
@@ -326,72 +398,10 @@ class AbstractTreeBuilder:
         return result
 
 
-    def _parse_method(self, context):
-
-        if context is None:
-            return None
-
-        if not isinstance(context, ClassExpression):
-            return None
-
-        methodIdentifier = self._giveMethodName()
-
-        if methodIdentifier == context._identifier:
-            return None
-
-        methodReturnTokens = self._get_all_valid_previous_tokens( not_valid_tokens = [\
-            TokenType._semicolon,\
-            TokenType._colon,\
-            TokenType._opening_bracket,\
-            TokenType._closing_bracket],\
-            offset = 1)
-
-        methodReturns = [item.content for item in methodReturnTokens]
-
-        # at Params_begin
-
-        methodParamsTokens = self._get_all_valid_next_tokens(not_valid_tokens = [TokenType._params_end])
-        
-        methodParameters = [item.content for item in methodParamsTokens]
-
-        strParams = self._parseAndFormatMethodParams(methodParameters)
-
-        while self._current_type() != TokenType._params_end:
-            self.tokenStream.next()
-
-        # at Params_end
-        
-        methodConstToken = \
-            self._get_all_valid_next_tokens(not_valid_tokens = \
-                [TokenType._semicolon, TokenType._opening_bracket])
-
-        methodConstness = False
-        if len(methodConstToken) == 1 and methodConstToken[0].content == 'const':
-            methodConstness = True
-
-        self.tokenStream.next()
-
-        if methodConstness:
-            self.tokenStream.next()
-
-        if self._current_type() == TokenType._semicolon:
-            methodExpr = MethodExpression(methodIdentifier,
-                                          strParams,
-                                          " ".join(methodReturns),
-                                          methodConstness)
-
-            return methodExpr
-        else:
-            while self._current_type() != TokenType._closing_bracket:
-                self.tokenStream.next()
-
-        return None 
-
-        
-    # ja bym pomyslal nad inna nazwa poniewaz to jest dobre do uzycia w wielu miejscach
-    # a nie zawsze zwraca Method Name
-    # moze np. get identifier from left albo cos takiego ?
     def _giveMethodName(self):
+        # ja bym pomyslal nad inna nazwa poniewaz to jest dobre do uzycia w wielu miejscach
+        # a nie zawsze zwraca Method Name
+        # moze np. get identifier from left albo cos takiego ?
         methodName = ''
         if self._current_type() == TokenType._params_begin:
             self.tokenStream.prev()

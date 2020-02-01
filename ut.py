@@ -15,7 +15,6 @@ from nodes import Node
 # ------------------------------------------------------------
 # ------------------- HELPER METHODS -------------------------
 
-
 def _TokenReader_get_all_tokens(TokenReader):
     tokens = []
     while True:
@@ -26,12 +25,13 @@ def _TokenReader_get_all_tokens(TokenReader):
 
     return tokens
 
-
 # ------------------------------------------------------------
 # --------------------- TESTS --------------------------------
 
 
 class Test_TokenReader(unittest.TestCase):
+
+
     def test_get_next_tokenClassForwardDeclared(self):
         reader = TokenReader(text="class A;")
         token1 = reader.get_next_token()
@@ -137,10 +137,12 @@ class Test_TokenReader(unittest.TestCase):
         self.assertEqual(token.type, TokenType._eof)
         self.assertEqual(token.content, "")
 
+
     def test_GetTokenInvalidComment(self):
         reader = TokenReader(text=r"/void Foo::Bar(uint32_t& ref, int * ptr) const;")
         with self.assertRaises(Exception):
             reader.get_next_token()
+
 
     def test_GetTokenPreprocIgnored(self):
         reader = TokenReader(text="""#ifndef HEADER_HPP
@@ -150,6 +152,7 @@ class Test_TokenReader(unittest.TestCase):
 
         self.assertEqual(token.type, TokenType._eof)
         self.assertEqual(token.content, "")
+
 
     def test_GetTokenInsideClass1(self):
         reader = TokenReader(text="""class Foo : private Bar{   
@@ -204,6 +207,7 @@ class Test_TokenReader(unittest.TestCase):
         self.assertEqual(tokens[13].type, TokenType._semicolon)
         self.assertEqual(tokens[13].content, ";")
 
+
     def test_GetDesctructorInsideClass(self):
         reader = TokenReader(text="""class Foo {
                                      ~Foo();
@@ -242,23 +246,16 @@ class Test_TokenReader(unittest.TestCase):
 
 class Test_AbstractTreeBuilder(unittest.TestCase):
 
-    def test_OneSimpleNamespace(self):
-        reader = TokenReader(text=r"namespace N1{}")
-        s = TokenStream(reader)
-        a = AbstractTreeBuilder(s)
 
-        tree = a.build_ast()
+    def test_OneSimpleNamespace(self):
+        tree = AbstractTreeBuilder(source_code=r"namespace N1{}").build_ast()
 
         self.assertEqual(len(tree), 1)
         self.assertEqual(tree[0], NamespaceExpression('N1'))
 
 
     def test_NamespaceWithNestedClass(self):
-        reader = TokenReader(text=r"namespace N1{class C1{};};")
-        s = TokenStream(reader)
-        a = AbstractTreeBuilder(s)
-
-        tree = a.build_ast()
+        tree = AbstractTreeBuilder(source_code=r"namespace N1{class C1{};};").build_ast()
 
         self.assertEqual(len(tree), 2)
         self.assertEqual(tree[0], NamespaceExpression('N1'))
@@ -267,16 +264,11 @@ class Test_AbstractTreeBuilder(unittest.TestCase):
 
        
     def test_NamespaceWithNestedNamespace(self):
-        reader = TokenReader(text="""
+        tree = AbstractTreeBuilder(source_code="""
         namespace N1{
             namespace N2{}
         }
-        """)
-
-        s = TokenStream(reader)
-        a = AbstractTreeBuilder(s)
-
-        tree = a.build_ast()
+        """).build_ast()
 
         self.assertEqual(len(tree), 2)
         self.assertEqual(tree[0], NamespaceExpression('N1'))
@@ -284,16 +276,11 @@ class Test_AbstractTreeBuilder(unittest.TestCase):
 
 
     def test_CtorSimple(self):
-        reader = TokenReader(text="""
+        tree = AbstractTreeBuilder(source_code="""
         class A{
             A();
         };
-        """)
-
-        s = TokenStream(reader)
-        a = AbstractTreeBuilder(s)
-
-        tree = a.build_ast()
+        """).build_ast()
 
         self.assertEqual(len(tree), 2)
         self.assertEqual(tree[0], ClassExpression('A'))
@@ -302,91 +289,65 @@ class Test_AbstractTreeBuilder(unittest.TestCase):
 
 
     def test_CtorImplementedMethodSameAsNamespace(self):
-        reader = TokenReader(text="""
+        tree = AbstractTreeBuilder(source_code="""
         namespace A{
             void A(){}
         }
-        """)
-
-        s = TokenStream(reader)
-        a = AbstractTreeBuilder(s)
-
-        tree = a.build_ast()
+        """).build_ast()
 
         self.assertEqual(len(tree),1)
         self.assertEqual(tree[0], NamespaceExpression('A'))
 
 
     def test_CtorNotImplementedMethodSameAsNamespace(self):
-        reader = TokenReader(text="""
+        tree = AbstractTreeBuilder(source_code="""
         namespace A{
             void A();
         };
-        """)
-
-        s = TokenStream(reader)
-        a = AbstractTreeBuilder(s)
-
-        tree = a.build_ast()
+        """).build_ast()
 
         self.assertFalse(isinstance(tree[1], MethodExpression))
 
         # Dziwne dlaczego to nie przechodzi ?!
 
+
     def test_CtorWithOneParameter(self):
-        reader = TokenReader(text="""
+        tree = AbstractTreeBuilder(source_code="""
         class A{A(uint32_t& value1);};
-        """)
-
-        s = TokenStream(reader)
-        a = AbstractTreeBuilder(s)
-
-        tree = a.build_ast()
+        """).build_ast()
 
         self.assertEqual(len(tree), 2)
         self.assertEqual(tree[0], ClassExpression('A'))
         self.assertEqual(tree[1], CTorExpression('A', 'uint32_t& value1')) 
  
+
     def test_CtorWithTwoParameters(self):
-        reader = TokenReader(text="""
+        tree = AbstractTreeBuilder(source_code="""
         class A{A(uint32_t& value1, const uint32_t* value2);};
-        """)
-
-        s = TokenStream(reader)
-        a = AbstractTreeBuilder(s)
-
-        tree = a.build_ast()
+        """).build_ast()
 
         self.assertEqual(len(tree), 2)
         self.assertEqual(tree[0], ClassExpression('A'))
         self.assertEqual(tree[1], CTorExpression('A', 'uint32_t& value1, const uint32_t* value2'))
 
+
     def test_TwoCtorsOneImplementedAnotherNot(self):
-        reader = TokenReader(text="""
+        tree = AbstractTreeBuilder(source_code="""
         class A{A(){}A(int a);};
-        """)
-
-        s = TokenStream(reader)
-        a = AbstractTreeBuilder(s)
-
-        tree = a.build_ast()
+        """).build_ast()
 
         self.assertEqual(len(tree), 2)
         self.assertEqual(tree[0], ClassExpression('A'))
         self.assertEqual(tree[1], CTorExpression('A', 'int a'))
 
+
     def test_TwoCtorsImplemented(self):
-        reader = TokenReader(text="""
+        tree = AbstractTreeBuilder(source_code="""
         class A{
             A();
             A(int v);
             };
-        """)
-
-        s = TokenStream(reader)
-        a = AbstractTreeBuilder(s)
-
-        tree = a.build_ast()
+        """).build_ast()
 
         self.assertEqual(len(tree), 3)
         self.assertEqual(tree[0], ClassExpression('A'))
@@ -399,17 +360,12 @@ class Test_AbstractTreeBuilder(unittest.TestCase):
 
 
     def test_CtorWithNewlinedParameters(self):
-        reader = TokenReader(text="""
+        tree = AbstractTreeBuilder(source_code="""
         class MegaPrzydatnaKlasa{
             MegaPrzydatnaKlasa(int*& val1,
                                SomeOtherType const& val2);
             };
-        """)
-
-        s = TokenStream(reader)
-        a = AbstractTreeBuilder(s)
-
-        tree = a.build_ast()
+        """).build_ast()
 
         self.assertEqual(len(tree), 2)
         self.assertEqual(tree[0], ClassExpression('MegaPrzydatnaKlasa'))
@@ -419,22 +375,17 @@ class Test_AbstractTreeBuilder(unittest.TestCase):
 
 
     def test_CtorNoCtor(self):
-        reader = TokenReader(text="""
+        tree = AbstractTreeBuilder(source_code="""
         class Foo{
             void Method();
-        """)
-
-        s = TokenStream(reader)
-        a = AbstractTreeBuilder(s)
-
-        tree = a.build_ast()
+        """).build_ast()
 
         self.assertEqual(len(tree), 2)
         self.assertEqual(tree[0], ClassExpression('Foo'))
 
 
     def test_CtorTwoCtorsOneWithGarbageInside(self):
-        reader = TokenReader(text="""
+        tree = AbstractTreeBuilder(source_code="""
         class Foo{
             Foo()
             {
@@ -443,12 +394,7 @@ class Test_AbstractTreeBuilder(unittest.TestCase):
             }
 
             Foo(int v);
-        """)
-
-        s = TokenStream(reader)
-        a = AbstractTreeBuilder(s)
-
-        tree = a.build_ast()
+        """).build_ast()
 
         self.assertEqual(len(tree), 2)
         self.assertEqual(tree[0], ClassExpression('Foo'))
@@ -458,16 +404,11 @@ class Test_AbstractTreeBuilder(unittest.TestCase):
 
 
     def test_DtorSimpleNotImplemented(self):
-        reader = TokenReader(text="""
+        tree = AbstractTreeBuilder(source_code="""
         class A{
             void ~A();
         };
-        """)
-
-        s = TokenStream(reader)
-        a = AbstractTreeBuilder(s)
-
-        tree = a.build_ast()
+        """).build_ast()
 
         self.assertEqual(len(tree),2)
         self.assertEqual(tree[0], ClassExpression('A'))
@@ -475,16 +416,11 @@ class Test_AbstractTreeBuilder(unittest.TestCase):
 
 
     def test_MethodParsingSimpleMethod(self):
-        reader = TokenReader(text="""
+        tree = AbstractTreeBuilder(source_code="""
         class Foo{
             void Bar();
         };
-        """)
-
-        s = TokenStream(reader)
-        a = AbstractTreeBuilder(s)
-
-        tree = a.build_ast()    
+        """).build_ast() 
 
         self.assertEqual(len(tree), 2)
         self.assertTrue(isinstance(tree[1], MethodExpression))
@@ -495,16 +431,11 @@ class Test_AbstractTreeBuilder(unittest.TestCase):
         
 
     def test_MethodParsingSimpleMethodWithParameters(self):
-        reader = TokenReader(text="""
+        tree = AbstractTreeBuilder(source_code="""
         class Foo{
             void Bar(int* a);
         };
-        """)
-
-        s = TokenStream(reader)
-        a = AbstractTreeBuilder(s)
-
-        tree = a.build_ast()    
+        """).build_ast()  
 
         self.assertEqual(len(tree), 2)
         self.assertTrue(isinstance(tree[1], MethodExpression))
@@ -513,7 +444,9 @@ class Test_AbstractTreeBuilder(unittest.TestCase):
         self.assertEqual(tree[1]._returns, 'void')
         self.assertFalse(tree[1]._constness)
 
+
 class Test_Node(unittest.TestCase):
+
 
     def test_Root(self):
         grandFather = Node()
@@ -539,7 +472,6 @@ class Test_Node(unittest.TestCase):
         self.assertEqual(child.get_father(), father)
         self.assertEqual(father.get_father(), grandFather)
         self.assertEqual(grandFather.get_father(), None)
-
 
 
 def main():

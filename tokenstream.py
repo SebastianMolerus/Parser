@@ -3,11 +3,11 @@ from TokenReader import TokenReader
 from TokenReader import TokenType
 
 class TokenStream:
-    def __init__(self, parser):
+    def __init__(self, token_reader):
         self._cache = []
 
         while True:
-            token = parser.get_next_token()
+            token = token_reader.get_next_token()
             self._cache.append(token)
             if token.type == TokenType._eof:
                 break

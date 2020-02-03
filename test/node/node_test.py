@@ -29,14 +29,3 @@ class Test_Node(unittest.TestCase):
         self.assertEqual(child.get_father(), father)
         self.assertEqual(father.get_father(), grandFather)
         self.assertEqual(grandFather.get_father(), None)
-
-
-    def test_FlatListForOneNode(self):
-        n = Node()
-        self.assertEqual(len(n), 1)
-
-
-    def test_FlatListForTwoNodes(self):
-        n = Node()
-        n.attach(Node())
-        self.assertEqual(len(n), 2)

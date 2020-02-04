@@ -9,6 +9,7 @@ class Test_AstMethod(unittest.TestCase):
     def test_MethodParsingReturns0(self):
         tree = AbstractTreeBuilder(source_code="""
         class Foo{
+            public:
             uint_32 const* Bar(int* a);
         };
         """).build_ast()  
@@ -24,6 +25,7 @@ class Test_AstMethod(unittest.TestCase):
     def test_MethodParsingReturns1(self):
         tree = AbstractTreeBuilder(source_code="""
         class Foo{
+            public:
             A::B const* Bar(int* a);
         };
         """).build_ast()  
@@ -32,7 +34,6 @@ class Test_AstMethod(unittest.TestCase):
         self.assertTrue(isinstance(tree[1], MethodExpression))
         self.assertEqual(tree[1]._identifier, 'Bar')
         self.assertEqual(tree[1]._parameters, 'int* a')
-        # tutaj mi zwraca A:: B const* -> musimy pomyslec nad metoda _parseAndFormatParams
         self.assertEqual(tree[1]._returns, 'A::B const*') 
         self.assertFalse(tree[1]._constness)
 
@@ -40,7 +41,7 @@ class Test_AstMethod(unittest.TestCase):
     def test_MethodParsingReturns2(self):
         tree = AbstractTreeBuilder(source_code="""
         class Foo{
-            private:
+            public:
             G const* Bar(int* a);
         };
         """).build_ast()  
@@ -56,7 +57,7 @@ class Test_AstMethod(unittest.TestCase):
     def test_MethodParsingReturns3(self):
         tree = AbstractTreeBuilder(source_code="""
         class Foo{
-            private:
+            public:
             G::B const* Bar(int* a);
         };
         """).build_ast()  
@@ -65,7 +66,6 @@ class Test_AstMethod(unittest.TestCase):
         self.assertTrue(isinstance(tree[1], MethodExpression))
         self.assertEqual(tree[1]._identifier, 'Bar')
         self.assertEqual(tree[1]._parameters, 'int* a')
-        # tutaj mi zwraca A=G:: B const* -> musimy pomyslec nad metoda _parseAndFormatParams
         self.assertEqual(tree[1]._returns, 'G::B const*')
         self.assertFalse(tree[1]._constness)
 
@@ -73,6 +73,7 @@ class Test_AstMethod(unittest.TestCase):
     def test_MethodParsingReturns4(self):
         tree = AbstractTreeBuilder(source_code="""
         class Foo{
+            public:
             Foo();
             int Bar(int* a);
         };
@@ -88,6 +89,7 @@ class Test_AstMethod(unittest.TestCase):
     def test_MethodParsingReturns5(self):
         tree = AbstractTreeBuilder(source_code="""
         class Foo{
+            public:
             Foo(){}
             int Bar(int* a);
         };
@@ -103,6 +105,7 @@ class Test_AstMethod(unittest.TestCase):
     def test_MethodParsingReturns6(self):
         tree = AbstractTreeBuilder(source_code="""
         class Foo{
+            public:
             Foo(){}
             int const* const Bar(int* a);
         };
@@ -118,6 +121,7 @@ class Test_AstMethod(unittest.TestCase):
     def test_MethodParsingReturns7(self):
         tree = AbstractTreeBuilder(source_code="""
         class Foo{
+            public:
             Foo(){}
             A::B const* const Bar(int* a);
         };
@@ -133,6 +137,7 @@ class Test_AstMethod(unittest.TestCase):
     def test_MethodParsingReturns8(self):
         tree = AbstractTreeBuilder(source_code="""
         class Foo{
+            public:
             Foo(){}
             A::B const& const Bar(int* a);
         };
@@ -145,12 +150,10 @@ class Test_AstMethod(unittest.TestCase):
         self.assertFalse(tree[1]._constness)
 
 
-    # Focus on parameters part
-
-
     def test_MethodParsingParameters0(self):
         tree = AbstractTreeBuilder(source_code="""
         class Foo{
+            public:
             void Bar();
         };
         """).build_ast() 
@@ -166,6 +169,7 @@ class Test_AstMethod(unittest.TestCase):
     def test_MethodParsingParameters1(self):
         tree = AbstractTreeBuilder(source_code="""
         class Foo{
+            public:
             void Bar(int* a);
         };
         """).build_ast()  
@@ -181,6 +185,7 @@ class Test_AstMethod(unittest.TestCase):
     def test_MethodParsingParameters2(self):
         tree = AbstractTreeBuilder(source_code="""
         class Foo{
+            public:
             void Bar(int* a, A::B const* value2);
         };
         """).build_ast()  
@@ -188,7 +193,6 @@ class Test_AstMethod(unittest.TestCase):
         self.assertEqual(len(tree), 2)
         self.assertTrue(isinstance(tree[1], MethodExpression))
         self.assertEqual(tree[1]._identifier, 'Bar')
-        # tutaj tez jest A:: B
         self.assertEqual(tree[1]._parameters, 'int* a, A::B const* value2')
         self.assertEqual(tree[1]._returns, 'void')
         self.assertFalse(tree[1]._constness)
@@ -197,6 +201,7 @@ class Test_AstMethod(unittest.TestCase):
     def test_MethodParsingParameters3(self):
         tree = AbstractTreeBuilder(source_code="""
         class Foo{
+            public:
             void Bar(int* a, A::B const* value2);
         };
         """).build_ast()  
@@ -204,7 +209,6 @@ class Test_AstMethod(unittest.TestCase):
         self.assertEqual(len(tree), 2)
         self.assertTrue(isinstance(tree[1], MethodExpression))
         self.assertEqual(tree[1]._identifier, 'Bar')
-        # tutaj tez jest A:: B
         self.assertEqual(tree[1]._parameters, 'int* a, A::B const* value2')
         self.assertEqual(tree[1]._returns, 'void')
         self.assertFalse(tree[1]._constness)
@@ -213,6 +217,7 @@ class Test_AstMethod(unittest.TestCase):
     def test_MethodParsingParameters4(self):
         tree = AbstractTreeBuilder(source_code="""
         class Foo{
+            public:
             void Bar(int * a);
         };
         """).build_ast()  
@@ -220,24 +225,20 @@ class Test_AstMethod(unittest.TestCase):
         self.assertEqual(len(tree), 2)
         self.assertTrue(isinstance(tree[1], MethodExpression))
         self.assertEqual(tree[1]._identifier, 'Bar')
-        # i tez pytanie czy tutaj powinna byc wersja oryginalna czy nie ?
-        # w sumie lepiej wyglada int* a niz int * a
-        # do obgadania
         self.assertEqual(tree[1]._parameters, 'int* a')
         self.assertEqual(tree[1]._returns, 'void')
         self.assertFalse(tree[1]._constness)
-
-    
-    # Focus on constness part
 
 
     def test_MethodParsingConstness0(self):
         tree = AbstractTreeBuilder(source_code="""
         class Foo{
+            public:
             void Bar(int * a) const;
         };
         """).build_ast()  
 
+        self.assertEqual(len(tree), 2)
         self.assertTrue(isinstance(tree[1], MethodExpression))
         self.assertTrue(tree[1]._constness)
 
@@ -245,9 +246,94 @@ class Test_AstMethod(unittest.TestCase):
     def test_MethodParsingConstness1(self):
         tree = AbstractTreeBuilder(source_code="""
         class Foo{
+            public:
             void Bar(int * a) const;
         };
         """).build_ast()  
 
         self.assertTrue(isinstance(tree[1], MethodExpression))
         self.assertTrue(tree[1]._constness)
+
+
+    def test_PrivateMethodsByDefaultNotParsed(self):
+        tree = AbstractTreeBuilder(source_code="""
+        class Foo{
+            private:
+            typedef (*a)(*a);
+            void Bar();
+        };
+        """).build_ast()
+
+        self.assertEqual(len(tree), 1)
+        self.assertTrue(tree[0] == ClassExpression("Foo"))
+
+
+    def test_VirtualMethod(self):
+        tree = AbstractTreeBuilder(source_code="""
+        class Foo{
+            private:
+            void bar1();
+            public:
+            virtual void bar2() const = 0;
+            virtual void bar3() const;
+            virtual void bar4() const
+            {
+
+            }
+        };
+        """).build_ast()
+
+        self.assertEqual(len(tree), 2)
+        self.assertEqual(tree[0], ClassExpression("Foo"))
+        self.assertTrue(isinstance(tree[1], MethodExpression))
+        self.assertEqual(tree[1]._identifier, 'bar3')
+        self.assertEqual(tree[1]._parameters, '')
+        self.assertEqual(tree[1]._returns, 'void')
+
+
+    def test_ClassWithFriend(self):
+        tree = AbstractTreeBuilder(source_code="""
+        class Foo{
+            friend class Fos;
+            private:
+            void bar1();
+            virtual void bar2() const = 0;
+            virtual void bar3() const;
+            virtual void bar4() const
+            {
+
+            }
+        };
+        """).build_ast()
+
+        self.assertEqual(len(tree), 3)
+        self.assertEqual(tree[0], ClassExpression("Foo"))
+
+        self.assertTrue(isinstance(tree[1], MethodExpression))
+        self.assertEqual(tree[1]._identifier, 'bar1')
+        self.assertEqual(tree[1]._parameters, '')
+        self.assertEqual(tree[1]._returns, 'void')
+
+        self.assertTrue(isinstance(tree[2], MethodExpression))
+        self.assertTrue(tree[2]._constness)
+        self.assertEqual(tree[2]._identifier, 'bar3')
+        self.assertEqual(tree[2]._parameters, '')
+        self.assertEqual(tree[2]._returns, 'void')
+ 
+
+    def test_ClassWithoutFriend(self):
+        tree = AbstractTreeBuilder(source_code="""
+        class Foo{
+            private:
+            void bar1();
+            virtual void bar2() const = 0;
+            virtual void bar3() const;
+            virtual void bar4() const
+            {
+
+            }
+        };
+        """).build_ast()
+
+        self.assertEqual(len(tree), 1)
+        self.assertEqual(tree[0], ClassExpression("Foo"))

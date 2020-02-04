@@ -22,7 +22,12 @@ class TokenType(enum.Enum):
     _preproc         =   18,    # #
     _tilde           =   19,    # ~
     _const           =   20,
-    _equal           =   21
+    _equal           =   21,
+    _typedef         =   22,
+    _typename        =   23,
+    _virtual         =   24,
+    _friend          =   25,
+    _template        =   26
 
 
 class CharStream:
@@ -57,10 +62,12 @@ class Token:
         self._type = type
         self._content = content
 
+
     @property
     def type(self):
         '''Returns token type eq: TokenType._eof, TokenType._identifier'''
         return self._type
+
 
     @property
     def content(self):
@@ -138,8 +145,8 @@ class TokenReader:
             else:
                 raise Exception("Expected / after /.")
 
-        #ignore preproc directives, friends
-        if self.CharStream.lastChar == '#' or self.identifier == 'friend':
+        #ignore preproc directives
+        if self.CharStream.lastChar == '#':
             while self.CharStream.pop() != '\n':
                 pass
             return self.get_next_token()
@@ -180,6 +187,16 @@ class TokenReader:
             return Token(TokenType._const, "const")
         if self.identifier == r"=":
             return Token(TokenType._equal, "=")
+        if self.identifier == r"typedef":
+            return Token(TokenType._typedef, "typedef")
+        if self.identifier == r"typename":
+            return Token(TokenType._typename, "typename")
+        if self.identifier == r"virtual":
+            return Token(TokenType._virtual, "virtual")
+        if self.identifier == r"friend":
+            return Token(TokenType._friend, "friend")
+        if self.identifier == r"template":
+            return Token(TokenType._template, "template")
 
         if self.identifier == r"e0f":
             return Token(TokenType._eof)

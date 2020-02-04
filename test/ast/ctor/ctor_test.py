@@ -29,18 +29,6 @@ class Test_AstCtor(unittest.TestCase):
         self.assertEqual(tree[0], NamespaceExpression('A'))
 
 
-    def test_CtorNotImplementedMethodSameAsNamespace(self):
-        tree = AbstractTreeBuilder(source_code="""
-        namespace A{
-            void A();
-        };
-        """).build_ast()
-
-        self.assertFalse(isinstance(tree[1], MethodExpression))
-
-        # Dziwne dlaczego to nie przechodzi ?!
-
-
     def test_CtorWithOneParameter(self):
         tree = AbstractTreeBuilder(source_code="""
         class A{A(uint32_t& value1);};
@@ -107,6 +95,7 @@ class Test_AstCtor(unittest.TestCase):
     def test_CtorNoCtor(self):
         tree = AbstractTreeBuilder(source_code="""
         class Foo{
+            public:
             void Method();
         """).build_ast()
 

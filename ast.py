@@ -38,6 +38,15 @@ class AbstractTreeBuilder:
 
         CurrentToken = self.tokenStream.currentToken
 
+        if CurrentToken.type == TokenType._template:
+            pass
+
+        if CurrentToken.type == TokenType._typedef:
+            while self.tokenStream.next():
+                if self._current_type() == TokenType._semicolon:
+                    break
+            return None
+
         if CurrentToken.type == TokenType._namespace:
             return self._parse_namespace(context)
 
@@ -115,13 +124,18 @@ class AbstractTreeBuilder:
         # currentToken == token.opening_brackets
 
         while self.tokenStream.next():
-            
+
+            # friend inside class
+            if self._current_type() == TokenType._friend:
+                parsedClass._friend_inside_spotted()
+
             # take care of public, prot, private
             parsedClass._set_scope_from_scope_token(self._current_type())
 
             # we're done
             if self._current_type() == TokenType._closing_bracket:
                 break
+
             expr = self._try_parse_expression(parsedClass)
             if expr is None:
                 continue
@@ -227,6 +241,10 @@ class AbstractTreeBuilder:
 
         assert(self._current_type() == TokenType._params_begin)
 
+        if not context.is_friend_inside() and \
+            (context.get_current_scope() == TokenType._protected or context.get_current_scope() == TokenType._private):
+            return None
+
         methodIdentifier = self._giveMethodName()
 
         if methodIdentifier == context._identifier:
@@ -251,19 +269,24 @@ class AbstractTreeBuilder:
 
         # at Params_end
         
-        methodConstToken = \
+        afterParametersTokens = \
             self._get_all_valid_next_tokens(not_valid_tokens = \
                 [TokenType._semicolon, TokenType._opening_bracket])
 
         methodConstness = False
-        if len(methodConstToken) == 1 and methodConstToken[0].content == 'const':
-            methodConstness = True
+        for token in afterParametersTokens:
+            if token.type == TokenType._const:
+                methodConstness = True
 
-        self.tokenStream.next()
+            # pure virtual
+            if token.type == TokenType._equal:
+                return None
 
-        if methodConstness:
-            self.tokenStream.next()
-
+        while self.tokenStream.next():
+            if self._current_type() == TokenType._semicolon or \
+                self._current_type() == TokenType._opening_bracket:
+                break
+            
         if self._current_type() == TokenType._semicolon:
             methodExpr = MethodExpression(methodIdentifier,
                                           strParams,
@@ -468,6 +491,11 @@ class AbstractTreeBuilder:
 
         # check for original position
         assert(originalPositionToken is self.tokenStream.currentToken)
+
+        for item in result:
+            if item.type == TokenType._virtual:
+                result.remove(item)
+                break
 
         result.reverse()
 

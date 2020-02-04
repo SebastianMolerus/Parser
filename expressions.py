@@ -37,6 +37,7 @@ class ClassExpression(Expression):
     def __init__(self, identifier):
         Expression.__init__(self, identifier)
         self._currentScope = TokenType._private
+        self._isFriendInside = False
 
 
     def _set_scope_from_scope_token(self, scope_token):
@@ -45,6 +46,19 @@ class ClassExpression(Expression):
            scope_token == TokenType._private or \
            scope_token == TokenType._protected:
             self._currentScope = scope_token
+
+
+    def _friend_inside_spotted(self):
+        self._isFriendInside = True
+
+
+    def is_friend_inside(self):
+        return self._isFriendInside
+
+
+    def get_current_scope(self):
+        return self._currentScope
+
 
 
 class NamespaceExpression(Expression):

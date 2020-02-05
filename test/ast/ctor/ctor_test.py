@@ -8,6 +8,7 @@ class Test_AstCtor(unittest.TestCase):
     def test_CtorSimple(self):
         tree = AbstractTreeBuilder(source_code="""
         class A{
+            public:
             A();
         };
         """).build_ast()
@@ -17,6 +18,30 @@ class Test_AstCtor(unittest.TestCase):
         self.assertTrue(isinstance(tree[1], CTorExpression))
         self.assertEqual(tree[1]._identifier, 'A')
 
+    def test_OnePrivateCtorSimple(self):
+        tree = AbstractTreeBuilder(source_code="""
+        class A{
+            A();
+        };
+        """).build_ast()
+
+        self.assertEqual(len(tree), 1)
+        self.assertEqual(tree[0], ClassExpression('A'))
+
+
+    def test_TwoCtorsSimplePrivateAndPublic(self):
+        tree = AbstractTreeBuilder(source_code="""
+        class A{
+            A(A &);
+            public:
+            A();
+        };
+        """).build_ast()
+
+        self.assertEqual(len(tree), 2)
+        self.assertEqual(tree[0], ClassExpression('A'))
+        self.assertTrue(isinstance(tree[1], CTorExpression))
+        self.assertEqual(tree[1]._identifier, 'A')
 
     def test_CtorImplementedMethodSameAsNamespace(self):
         tree = AbstractTreeBuilder(source_code="""
@@ -31,7 +56,7 @@ class Test_AstCtor(unittest.TestCase):
 
     def test_CtorWithOneParameter(self):
         tree = AbstractTreeBuilder(source_code="""
-        class A{A(uint32_t& value1);};
+        class A{public: A(uint32_t& value1);};
         """).build_ast()
 
         self.assertEqual(len(tree), 2)
@@ -41,7 +66,7 @@ class Test_AstCtor(unittest.TestCase):
 
     def test_CtorWithTwoParameters(self):
         tree = AbstractTreeBuilder(source_code="""
-        class A{A(uint32_t& value1, const uint32_t* value2);};
+        class A{public:A(uint32_t& value1, const uint32_t* value2);};
         """).build_ast()
 
         self.assertEqual(len(tree), 2)
@@ -51,7 +76,7 @@ class Test_AstCtor(unittest.TestCase):
 
     def test_TwoCtorsOneImplementedAnotherNot(self):
         tree = AbstractTreeBuilder(source_code="""
-        class A{A(){}A(int a);};
+        class A{public:A(){}A(int a);};
         """).build_ast()
 
         self.assertEqual(len(tree), 2)
@@ -62,6 +87,7 @@ class Test_AstCtor(unittest.TestCase):
     def test_TwoCtorsImplemented(self):
         tree = AbstractTreeBuilder(source_code="""
         class A{
+            public:
             A();
             A(int v);
             };
@@ -73,13 +99,14 @@ class Test_AstCtor(unittest.TestCase):
         self.assertEqual(tree[1], CTorExpression('A', ''))
         
         self.assertTrue(isinstance(tree[2], CTorExpression))
-        self.assertEqual(tree[2].parameters, 'int v', "Parameters does not match.")
+        self.assertEqual(tree[2]._parameters, 'int v', "Parameters does not match.")
         self.assertEqual(tree[2]._identifier, 'A', 'Ctor identifier does not match.')
 
 
     def test_CtorWithNewlinedParameters(self):
         tree = AbstractTreeBuilder(source_code="""
         class MegaPrzydatnaKlasa{
+            public:
             MegaPrzydatnaKlasa(int*& val1,
                                SomeOtherType const& val2);
             };
@@ -88,7 +115,7 @@ class Test_AstCtor(unittest.TestCase):
         self.assertEqual(len(tree), 2)
         self.assertEqual(tree[0], ClassExpression('MegaPrzydatnaKlasa'))
         self.assertEqual(tree[1]._identifier, 'MegaPrzydatnaKlasa')
-        self.assertEqual(tree[1].parameters, 'int*& val1, SomeOtherType const& val2')
+        self.assertEqual(tree[1]._parameters, 'int*& val1, SomeOtherType const& val2')
         self.assertTrue(isinstance(tree[1], CTorExpression))
 
 
@@ -106,6 +133,7 @@ class Test_AstCtor(unittest.TestCase):
     def test_CtorTwoCtorsOneWithGarbageInside(self):
         tree = AbstractTreeBuilder(source_code="""
         class Foo{
+            public:
             Foo()
             {
                 Foo* ptr = new Foo();
@@ -118,5 +146,39 @@ class Test_AstCtor(unittest.TestCase):
         self.assertEqual(len(tree), 2)
         self.assertEqual(tree[0], ClassExpression('Foo'))
         self.assertEqual(tree[1]._identifier, 'Foo')
-        self.assertEqual(tree[1].parameters, 'int v')
+        self.assertEqual(tree[1]._parameters, 'int v')
         self.assertTrue(isinstance(tree[1], CTorExpression))
+
+    def test_TwoCopyCtorsPrivateAndPublic(self):
+        tree = AbstractTreeBuilder(source_code="""
+        class A{
+            private
+            A(const A&);
+            public:
+            A(const A&);
+        };
+        """).build_ast()
+
+        self.assertEqual(len(tree), 2)
+        self.assertEqual(tree[0], ClassExpression('A'))
+        self.assertTrue(isinstance(tree[1], CTorExpression))
+        self.assertEqual(tree[1]._identifier, 'A')
+        self.assertEqual(tree[1]._parameters, 'const A&')
+    
+
+    def test_TwoCopyCtorsPrivateAndImplementedPublic(self):
+        tree = AbstractTreeBuilder(source_code="""
+        class A{
+            private:
+            A(const A&);
+            public:
+            A(const A&) {
+                a = A.a;
+            }
+            private:
+            int a;
+        };
+        """).build_ast()
+
+        self.assertEqual(len(tree), 1)
+        self.assertEqual(tree[0], ClassExpression('A'))

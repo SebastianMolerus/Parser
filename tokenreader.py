@@ -27,7 +27,8 @@ class TokenType(enum.Enum):
     _typename        =   23,
     _virtual         =   24,
     _friend          =   25,
-    _template        =   26
+    _template        =   26,
+    _operator        =   27
 
 
 class CharStream:
@@ -197,6 +198,8 @@ class TokenReader:
             return Token(TokenType._friend, "friend")
         if self.identifier == r"template":
             return Token(TokenType._template, "template")
+        if self.identifier == r"operator":
+            return Token(TokenType._operator, "operator")
 
         if self.identifier == r"e0f":
             return Token(TokenType._eof)

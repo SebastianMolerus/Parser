@@ -77,13 +77,19 @@ class MethodExpression(Expression):
 class CTorExpression(Expression):
     def __init__(self, identifier, parameters):
         Expression.__init__(self, identifier)
-        self.parameters = parameters
+        self._parameters = parameters
 
 
     def __eq__(self, expr):
-        return Expression.__eq__(self, expr) and self.parameters == expr.parameters
+        return Expression.__eq__(self, expr) and self._parameters == expr._parameters
 
 
 class DTorExpression(Expression):
     def __init__(self, identifier):
         Expression.__init__(self, identifier)
+
+class OperatorExpression(Expression):
+    def __init__(self, identifier, parameters, returns):
+        Expression.__init__(self, identifier)
+        self._parameters = parameters
+        self._returns = returns

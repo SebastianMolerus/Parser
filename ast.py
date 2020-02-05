@@ -59,6 +59,9 @@ class AbstractTreeBuilder:
         if CurrentToken.type == TokenType._tilde:
             return self._parse_dtor(context)
 
+        if CurrentToken.type == TokenType._operator:
+            return self._parse_operator(context)
+
         return None
 
 
@@ -176,6 +179,9 @@ class AbstractTreeBuilder:
 
         if not isinstance(context, ClassExpression):
             return None
+
+        if not self._is_public_scope(context):
+            return None
         
         cTorName = context._identifier
         strParams = ''
@@ -186,9 +192,9 @@ class AbstractTreeBuilder:
         # at Params_begin
         methodParamsTokens = self._get_all_valid_next_tokens(not_valid_tokens = [TokenType._params_end])
         
-        methodParameters = [item.content for item in methodParamsTokens]
+        strParams = self._convert_param_tokens_to_string(methodParamsTokens)
 
-        strParams = self._parseAndFormatParams(methodParameters)
+        print strParams
 
         while self._current_type() != TokenType._params_end:
             self.tokenStream.next()
@@ -250,19 +256,17 @@ class AbstractTreeBuilder:
         if methodIdentifier == context._identifier:
             return None
 
-        # at Params_begin
+        # at Return_Params_begin
 
         methodReturnTokens = self._get_method_return_type()
+        strReturns = self._convert_param_tokens_to_string(methodReturnTokens)
 
-        methodReturns = [item.content for item in methodReturnTokens]
-        strReturns = self._parseAndFormatParams(methodReturns)
+        # at Return_Params_end
 
         # at Params_begin
 
         methodParamsTokens = self._get_all_valid_next_tokens(not_valid_tokens = [TokenType._params_end])
-        
-        methodParameters = [item.content for item in methodParamsTokens]
-        strParams = self._parseAndFormatParams(methodParameters)
+        strParams = self._convert_param_tokens_to_string(methodParamsTokens)
 
         while self._current_type() != TokenType._params_end:
             self.tokenStream.next()
@@ -298,7 +302,45 @@ class AbstractTreeBuilder:
             while self._current_type() != TokenType._closing_bracket:
                 self.tokenStream.next()
 
-        return None 
+        return None
+
+
+    def _parse_operator(self,context):
+
+        if context is None:
+            return None
+
+        if not isinstance(context, ClassExpression):
+            return None
+
+        if not self._is_public_scope(context):
+            return None
+
+        operatorIdStr = ''
+        self.tokenStream.next()
+            
+        while self._current_type() != TokenType._params_begin:
+            operatorIdStr += self._current_content()
+            self.tokenStream.next()
+        
+        methodReturnTokens = self._get_method_return_type()
+        del methodReturnTokens[-1]
+        strReturns = self._convert_param_tokens_to_string(methodReturnTokens)
+
+        methodParamsTokens = self._get_all_valid_next_tokens(not_valid_tokens = [TokenType._params_end])
+        strParams = self._convert_param_tokens_to_string(methodParamsTokens)
+
+        while self._current_type() != TokenType._params_end:
+            self.tokenStream.next()
+
+        self.tokenStream.next()
+        if self._current_type() == TokenType._semicolon:
+            parsedOperator = OperatorExpression(operatorIdStr, strParams, strReturns)
+            return parsedOperator
+        else:
+            while self._current_type() != TokenType._closing_bracket:
+                self.tokenStream.next()
+        return None
 
 
     def _current_type(self):
@@ -319,21 +361,24 @@ class AbstractTreeBuilder:
         return True
             
 
-    def _parseAndFormatParams(self, methodParameters):
-
-        # ta metode bym zmienil na taka co przyjmuje liste tokenow
-        # z zwraca string
-        # a dodatkowo ona z A::B robi A:: B
-        strParams = ''
-        for methodParam in methodParameters:
-            if (methodParam == '&') or (methodParam == '*'):
+    def _convert_param_tokens_to_string(self, methodParamsTokens):
+        strMethodParams = ''
+        for methodParamToken in methodParamsTokens:
+            if (methodParamToken.type == TokenType._ref) or (methodParamToken.type == TokenType._star) or (methodParamToken.type == TokenType._colon):
                 pass
             else:
-                strParams += ' '
-            strParams += methodParam
-        strParams = strParams.replace(" ,",",")
-        strParams = strParams.strip()
-        return strParams
+                strMethodParams +=' '
+            strMethodParams += methodParamToken.content
+        strMethodParams = strMethodParams.replace(" ,",",")
+        strMethodParams = strMethodParams.replace(": ",":")
+        strMethodParams = strMethodParams.strip()
+        return strMethodParams
+    
+
+    def _is_public_scope(self, context):
+        if (context.get_current_scope() == TokenType._public):
+            return True
+        return False
 
 
     def _get_all_valid_previous_tokens(self, not_valid_tokens, offset = 0):
@@ -500,3 +545,13 @@ class AbstractTreeBuilder:
         result.reverse()
 
         return result
+
+
+# tree = AbstractTreeBuilder(source_code="""
+#         class Foo{
+#             public:
+#             Foo();
+#         };
+# """)
+
+# print tree.build_ast()

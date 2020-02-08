@@ -1,207 +1,149 @@
-import enum
-
-
-class TokenType(enum.Enum): 
-    _identifier      =   1,
-    _namespace       =   2,
-    _class           =   3,
-    _struct          =   4,
-    _semicolon       =   5,     # ;
-    _colon           =   6,     # :
-    _opening_bracket =   7,     # {
-    _closing_bracket =   8,     # }
-    _params_begin    =   9,     # (
-    _params_end      =   10,    # )
-    _public          =   11,
-    _private         =   12,
-    _protected       =   13,
-    _comma           =   14,    # ,
-    _eof             =   15,
-    _ref             =   16,    # &,
-    _star            =   17,    # *
-    _preproc         =   18,    # #
-    _tilde           =   19,    # ~
-    _const           =   20,
-    _equal           =   21,
-    _typedef         =   22,
-    _typename        =   23,
-    _virtual         =   24,
-    _friend          =   25,
-    _template        =   26,
-    _operator        =   27
-
-
-class CharStream:
-    def __init__(self):
-        self.buffer = []
-        self.lastChar = ''
-
-    def append(self, char):
-        self.buffer.append(char)
-    
-    def pop(self):
-        if self.is_empty():
-            raise Exception("Pop on empty CharStream")
-        self.lastChar = self.buffer.pop(0)
-        return self.lastChar
-
-    def is_empty(self):
-        return len(self.buffer) == 0
-
-    def push(self, char):
-        self.buffer.insert(0, char)
-
-    def is_alnum(self):
-        """For our purposes _ is treated as alphanumerical for uint_32
-           ':' for Foo::Bar"""
-        return (self.lastChar.isalnum() or \
-                self.lastChar == '_')
-
-
-class Token:
-    def __init__(self, type, content = ""):
-        self._type = type
-        self._content = content
-
-
-    @property
-    def type(self):
-        '''Returns token type eq: TokenType._eof, TokenType._identifier'''
-        return self._type
-
-
-    @property
-    def content(self):
-        return self._content
+from token_ import TokenType
+from token_ import Token
+from preproc import Preproc
 
 
 class TokenReader:
     """Class used for getting tokens from file or text. """
 
-    def __init__(self, fileName = None, text = None):
-        """ Initialize with fileName or text, not both.
+    def __init__(self, file = None, text = None, preproc = None):
+        """ Initialize with file or text.
 
         Args:
-            fileName: path to file to read tokens from.
+            file:     path to file to read tokens from.
 
-            text:     cpp code to read tokens from.
+            text:     string to read tokens from.
 
         """
-        self.CharStream = CharStream()
+        self._characters = []
 
-        if text and fileName:
+        if text and file:
             raise Exception("Defined two resources of data.")
 
         if text:
             for char in text: 
-                self.CharStream.append(char)
-            self.CharStream.append('\n')
-            self.CharStream.append(' ')
-            self.CharStream.append('e')
-            self.CharStream.append('0')
-            self.CharStream.append('f') 
-            self.CharStream.append('$')
+                self._characters.append(char)
+        else:
+            with open(file) as fileobj:
+                for line in fileobj:  
+                    for char in line: 
+                        self._characters.append(char)
+
+        self._characters.append('\n')
+        self._characters.append(' ')
+        self._characters.append('e')
+        self._characters.append('0')
+        self._characters.append('f') 
+        self._characters.append('$')
+
+        self._preproc = preproc or Preproc(self._characters)
+        self._characters = self._preproc.Preprocess()
+
+
+    def _form_alnum_identifier(self):
+
+        if not self._identifier.isalnum():
             return
- 
-        with open(fileName) as fileobj:
-            for line in fileobj:  
-                for char in line: 
-                    self.CharStream.append(char)
-            self.CharStream.append('\n')
-            self.CharStream.append(' ')
-            self.CharStream.append('e')
-            self.CharStream.append('0')
-            self.CharStream.append('f')
-            self.CharStream.append('$')
+
+        while True:
+            popped = self._characters.pop(0)
+            # for us'_' is treated as alnum.
+            if popped.isalnum() or popped == '_':
+                self._identifier += popped
+            else:
+                self._characters.insert(0, popped)
+                break
 
 
     def get_next_token(self):
+
         """Method used to get next token.
         
-        returns: Token with corresponding type and content.
-                 Last returned Token type is _eof.
+        Last returned Token type is _eof.
                  
         """
 
-        self.identifier = ' '
+        self._identifier = ' '
 
         # always take one token, continue if it is a space
-        while self.identifier.isspace():
-            self.identifier = self.CharStream.pop()
+        while self._identifier.isspace():
+            self._identifier = self._characters.pop(0)
 
-        # process alnums 
-        while self.CharStream.is_alnum():
-            self.CharStream.pop()
-            if self.CharStream.is_alnum():
-                self.identifier+=self.CharStream.lastChar
-            else:
-                self.CharStream.push(self.CharStream.lastChar)
+        self._form_alnum_identifier()
 
-        #ignore comments
-        if self.CharStream.lastChar == '/':
-            if self.CharStream.pop() == '/':
-                while self.CharStream.pop() != '\n':
-                    pass
-                return self.get_next_token()
-            else:
-                raise Exception("Expected / after /.")
+        if self._identifier == r"namespace":
+            return Token(TokenType._namespace, 'namespace')
 
-        #ignore preproc directives
-        if self.CharStream.lastChar == '#':
-            while self.CharStream.pop() != '\n':
-                pass
-            return self.get_next_token()
-    
-        if self.identifier == r"namespace":
-            return Token(TokenType._namespace, "namespace")
-        if self.identifier == r"class":
-            return Token(TokenType._class, "class")
-        if self.identifier == r"struct":
-            return Token(TokenType._struct, "struct")
-        if self.identifier == r";":
-            return Token(TokenType._semicolon, ";")
-        if self.identifier == r":":
-            return Token(TokenType._colon, ":")
-        if self.identifier == r"{":
-            return Token(TokenType._opening_bracket, "{")
-        if self.identifier == r"}":
-            return Token(TokenType._closing_bracket, "}")
-        if self.identifier == r"(":
-            return Token(TokenType._params_begin, "(")
-        if self.identifier == r")":
-            return Token(TokenType._params_end, ")")
-        if self.identifier == r"public":
-            return Token(TokenType._public, "public")
-        if self.identifier == r"private":
-            return Token(TokenType._private, "private")
-        if self.identifier == r"protected":
-            return Token(TokenType._protected, "protected")
-        if self.identifier == r",":
-            return Token(TokenType._comma, ",")
-        if self.identifier == r"*":
-            return Token(TokenType._star, "*")
-        if self.identifier == r"&":
-            return Token(TokenType._ref, "&")
-        if self.identifier == r"~":
-            return Token(TokenType._tilde, "~")
-        if self.identifier == r"const":
-            return Token(TokenType._const, "const")
-        if self.identifier == r"=":
-            return Token(TokenType._equal, "=")
-        if self.identifier == r"typedef":
-            return Token(TokenType._typedef, "typedef")
-        if self.identifier == r"typename":
-            return Token(TokenType._typename, "typename")
-        if self.identifier == r"virtual":
-            return Token(TokenType._virtual, "virtual")
-        if self.identifier == r"friend":
-            return Token(TokenType._friend, "friend")
-        if self.identifier == r"template":
-            return Token(TokenType._template, "template")
-        if self.identifier == r"operator":
-            return Token(TokenType._operator, "operator")
+        if self._identifier == r"class":
+            return Token(TokenType._class, 'class')
 
-        if self.identifier == r"e0f":
+        if self._identifier == r"struct":
+            return Token(TokenType._struct, 'struct')
+
+        if self._identifier == r";":
+            return Token(TokenType._semicolon, ';')
+
+        if self._identifier == r":":
+            return Token(TokenType._colon, ':')
+
+        if self._identifier == r"{":
+            return Token(TokenType._opening_bracket, '{')
+
+        if self._identifier == r"}":
+            return Token(TokenType._closing_bracket, '}')
+
+        if self._identifier == r"(":
+            return Token(TokenType._params_begin, '(')
+
+        if self._identifier == r")":
+            return Token(TokenType._params_end, ')')
+
+        if self._identifier == r"public":
+            return Token(TokenType._public, 'public')
+
+        if self._identifier == r"private":
+            return Token(TokenType._private, 'private')
+
+        if self._identifier == r"protected":
+            return Token(TokenType._protected, 'protected')
+
+        if self._identifier == r",":
+            return Token(TokenType._comma, ',')
+
+        if self._identifier == r"*":
+            return Token(TokenType._star, '*')
+            
+        if self._identifier == r"&":
+            return Token(TokenType._ref, '&')
+
+        if self._identifier == r"~":
+            return Token(TokenType._tilde, '~')
+
+        if self._identifier == r"const":
+            return Token(TokenType._const, 'const')
+
+        if self._identifier == r"=":
+            return Token(TokenType._equal, '=')
+
+        if self._identifier == r"typedef":
+            return Token(TokenType._typedef, 'typedef')
+
+        if self._identifier == r"typename":
+            return Token(TokenType._typename, 'typename')
+
+        if self._identifier == r"virtual":
+            return Token(TokenType._virtual, 'virtual')
+
+        if self._identifier == r"friend":
+            return Token(TokenType._friend, 'friend')
+
+        if self._identifier == r"template":
+            return Token(TokenType._template, 'template')
+
+        if self._identifier == r"operator":
+            return Token(TokenType._operator, 'operator')
+
+        if self._identifier == r"e0f":
             return Token(TokenType._eof)
 
-        return Token(TokenType._identifier, self.identifier)
+        return Token(TokenType._identifier, self._identifier)

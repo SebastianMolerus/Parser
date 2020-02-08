@@ -1,6 +1,6 @@
-from tokenreader import Token
+from token_ import Token
+from token_ import TokenType
 from tokenreader import TokenReader
-from tokenreader import TokenType
 
 class TokenStream:
     def __init__(self, token_reader):

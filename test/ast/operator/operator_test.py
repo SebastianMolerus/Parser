@@ -83,6 +83,7 @@ class Test_AstOperator(unittest.TestCase):
         self.assertEqual(tree[1]._parameters, 'const A::B::C::D::E::F::G::H::I::J::K::L::M::N::O::P& x')
         self.assertEqual(tree[1]._returns, 'A::B::C::D::E::F::G::H::I::J::K::L::M::N::O::P&')
 
+
     def test_OnePublicOperatorWithGarbageComments(self):
         tree = AbstractTreeBuilder(source_code="""
         class A{

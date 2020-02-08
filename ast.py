@@ -9,7 +9,7 @@ class AbstractTreeBuilder:
         if source_code is not None:
             self.tokenReader = TokenReader(text=source_code)
         else:
-            self.tokenReader = TokenReader(fileName=file)
+            self.tokenReader = TokenReader(file=file)
 
         self.tokenStream = TokenStream(self.tokenReader)
 

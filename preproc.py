@@ -6,7 +6,15 @@ class Preproc:
         self._multiline_comment = False
     
     def Preprocess(self):
-        self._source_after_processing = []
+        '''
+        
+        Removes all chars from // to '\n' 
+        
+        Removes all chars from /* to */
+  
+        '''
+
+        self.source_after_processing = []
 
         for index, char in enumerate(self._source):
 
@@ -21,13 +29,13 @@ class Preproc:
                 self._single_line_comment = False
             
             if not self._single_line_comment and not self._multiline_comment:
-                self._source_after_processing.append(char)
+                self.source_after_processing.append(char)
 
             if len(self._source) - 1 > index and char == '/': 
                 if self._source[index - 1] == '*':
                     self._multiline_comment = False
 
-        return self._source_after_processing
+        return self.source_after_processing
             
 
             

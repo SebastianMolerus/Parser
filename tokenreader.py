@@ -40,7 +40,7 @@ class TokenReader:
         self._characters = self._preproc.Preprocess()
 
 
-    def _form_alnum_identifier(self):
+    def _try_build_alnum_identifier(self):
 
         if not self._identifier.isalnum():
             return
@@ -65,11 +65,10 @@ class TokenReader:
 
         self._identifier = ' '
 
-        # always take one token, continue if it is a space
         while self._identifier.isspace():
             self._identifier = self._characters.pop(0)
 
-        self._form_alnum_identifier()
+        self._try_build_alnum_identifier()
 
         if self._identifier == r"namespace":
             return Token(TokenType._namespace, 'namespace')

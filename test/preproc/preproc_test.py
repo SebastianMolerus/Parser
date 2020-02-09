@@ -95,10 +95,14 @@ class Test_Preproc(unittest.TestCase):
     
     def test_remove_all_from_backslash_star_star_backshlash_combination(self):
         source = []
-        for char in "/*ab//cde\n fghi\n jkl*/":
+        for char in "/*ab//c*de\n /fg//hi\n jkl*/":
             source.append(char)
         
         p = Preproc(source)
         processed = p.Preprocess()
 
         self.assertEqual(len(processed), 0)
+
+    
+if __name__ == '__main__':
+    unittest.main()

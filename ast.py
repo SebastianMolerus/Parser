@@ -154,9 +154,7 @@ class AbstractTreeBuilder:
         everything from TokenType._params_begin
         
         """
-
-        #Mozna sprobowac takie cos. To tylko przyklad ale smiga
-        if self._isCtor(context):
+        if self._is_ctor(context):
             return self._parse_ctor(context)
         else:
             return self._parse_method(context) 
@@ -173,11 +171,8 @@ class AbstractTreeBuilder:
 
 
     def _parse_ctor(self, context):
-
-        if context is None:
-            return None
-
-        if not isinstance(context, ClassExpression):
+        '''Used for parsing class ctor.'''
+        if not self._is_proper_class_context(context):
             return None
 
         if not self._is_public_scope(context):
@@ -186,15 +181,13 @@ class AbstractTreeBuilder:
         cTorName = context._identifier
         strParams = ''
 
-        if self._giveMethodName() != context._identifier:
+        if self._get_identifier_from_left() != context._identifier:
             return None
         
         # at Params_begin
-        methodParamsTokens = self._get_all_valid_next_tokens(not_valid_tokens = [TokenType._params_end])
+        ctorParamsTokens = self._get_all_valid_next_tokens(not_valid_tokens = [TokenType._params_end])
         
-        strParams = self._convert_param_tokens_to_string(methodParamsTokens)
-
-        print strParams
+        strParams = self._convert_param_tokens_to_string(ctorParamsTokens)
 
         while self._current_type() != TokenType._params_end:
             self.tokenStream.next()
@@ -202,8 +195,7 @@ class AbstractTreeBuilder:
 
         self.tokenStream.next()
         if self._current_type() == TokenType._semicolon:
-            parsedCtor = CTorExpression(cTorName, strParams)
-            return parsedCtor
+            return CTorExpression(cTorName, strParams)
         else:
             while self._current_type() != TokenType._closing_bracket:
                 self.tokenStream.next()
@@ -211,20 +203,22 @@ class AbstractTreeBuilder:
 
 
     def _parse_dtor(self, context):
+        '''Used for parsing class dtor.'''
+        if not self._is_proper_class_context(context):
+            return None
+
+        if not self._is_public_scope(context):
+            return None
+        
         dTorName = context._identifier
 
-        self.tokenStream.next()
-        self.tokenStream.next()
+        while self._current_type() != TokenType._params_end:
+            self.tokenStream.next()
 
-        if self._current_type() != TokenType._params_begin:
-            raise Exception("Identifier expected correct destructor declaration")
-        
-        self.tokenStream.next() 
         self.tokenStream.next()
 
         if self._current_type() == TokenType._semicolon:
-            parsedDtor = DTorExpression(dTorName)
-            return parsedDtor
+            return DTorExpression(dTorName)
         else:
             while self._current_type() != TokenType._closing_bracket:
                 self.tokenStream.next()
@@ -239,10 +233,9 @@ class AbstractTreeBuilder:
 
         '''
 
-        if context is None:
+        if not self._is_proper_class_context(context):
             return None
-
-        if not isinstance(context, ClassExpression):
+        if not self._is_public_scope(context):
             return None
 
         assert(self._current_type() == TokenType._params_begin)
@@ -251,7 +244,7 @@ class AbstractTreeBuilder:
             (context.get_current_scope() == TokenType._protected or context.get_current_scope() == TokenType._private):
             return None
 
-        methodIdentifier = self._giveMethodName()
+        methodIdentifier = self._get_identifier_from_left()
 
         if methodIdentifier == context._identifier:
             return None
@@ -292,12 +285,11 @@ class AbstractTreeBuilder:
                 break
             
         if self._current_type() == TokenType._semicolon:
-            methodExpr = MethodExpression(methodIdentifier,
-                                          strParams,
-                                          strReturns,
-                                          methodConstness)
+            return  MethodExpression(methodIdentifier,
+                                    strParams,
+                                    strReturns,
+                                    methodConstness)
 
-            return methodExpr
         else:
             while self._current_type() != TokenType._closing_bracket:
                 self.tokenStream.next()
@@ -306,11 +298,9 @@ class AbstractTreeBuilder:
 
 
     def _parse_operator(self,context):
+        '''Used for parsing class operator.'''
 
-        if context is None:
-            return None
-
-        if not isinstance(context, ClassExpression):
+        if not self._is_proper_class_context(context):
             return None
 
         if not self._is_public_scope(context):
@@ -323,20 +313,19 @@ class AbstractTreeBuilder:
             operatorIdStr += self._current_content()
             self.tokenStream.next()
         
-        methodReturnTokens = self._get_method_return_type()
-        del methodReturnTokens[-1]
-        strReturns = self._convert_param_tokens_to_string(methodReturnTokens)
+        operatorReturnTokens = self._get_method_return_type()
+        del operatorReturnTokens[-1]
+        strReturns = self._convert_param_tokens_to_string(operatorReturnTokens)
 
-        methodParamsTokens = self._get_all_valid_next_tokens(not_valid_tokens = [TokenType._params_end])
-        strParams = self._convert_param_tokens_to_string(methodParamsTokens)
+        operatorParamsTokens = self._get_all_valid_next_tokens(not_valid_tokens = [TokenType._params_end])
+        strParams = self._convert_param_tokens_to_string(operatorParamsTokens)
 
         while self._current_type() != TokenType._params_end:
             self.tokenStream.next()
 
         self.tokenStream.next()
         if self._current_type() == TokenType._semicolon:
-            parsedOperator = OperatorExpression(operatorIdStr, strParams, strReturns)
-            return parsedOperator
+            return OperatorExpression(operatorIdStr, strParams, strReturns)
         else:
             while self._current_type() != TokenType._closing_bracket:
                 self.tokenStream.next()
@@ -353,13 +342,21 @@ class AbstractTreeBuilder:
         return self.tokenStream.currentToken.content
 
 
-    def _isCtor(self,context):
+    def _is_ctor(self,context):
         if not isinstance(context, ClassExpression):
             return False
-        if self._giveMethodName() != context._identifier:
+        if self._get_identifier_from_left() != context._identifier:
             return False
         return True
-            
+
+
+    def _is_proper_class_context(self,context):
+        if context is None:
+            return False
+        if not isinstance(context, ClassExpression):
+            return False
+        return True
+
 
     def _convert_param_tokens_to_string(self, methodParamsTokens):
         strMethodParams = ''
@@ -467,16 +464,13 @@ class AbstractTreeBuilder:
         return result
 
 
-    def _giveMethodName(self):
-        # ja bym pomyslal nad inna nazwa poniewaz to jest dobre do uzycia w wielu miejscach
-        # a nie zawsze zwraca Method Name
-        # moze np. get identifier from left albo cos takiego ?
-        methodName = ''
+    def _get_identifier_from_left(self):
+        idFromLeftName = ''
         if self._current_type() == TokenType._params_begin:
             self.tokenStream.prev()
-            methodName += self._current_content()
+            idFromLeftName += self._current_content()
             self.tokenStream.next()
-        return methodName
+        return idFromLeftName
 
 
     def _get_method_return_type(self):
@@ -550,7 +544,7 @@ class AbstractTreeBuilder:
 # tree = AbstractTreeBuilder(source_code="""
 #         class Foo{
 #             public:
-#             Foo();
+#             void metoda(int a);
 #         };
 # """)
 

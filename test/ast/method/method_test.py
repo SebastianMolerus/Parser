@@ -295,8 +295,9 @@ class Test_AstMethod(unittest.TestCase):
         tree = AbstractTreeBuilder(source_code="""
         class Foo{
             friend class Fos;
-            private:
+            public:
             void bar1();
+            private:
             virtual void bar2() const = 0;
             virtual void bar3() const;
             virtual void bar4() const
@@ -306,7 +307,7 @@ class Test_AstMethod(unittest.TestCase):
         };
         """).build_ast()
 
-        self.assertEqual(len(tree), 3)
+        self.assertEqual(len(tree), 2)
         self.assertEqual(tree[0], ClassExpression("Foo"))
 
         self.assertTrue(isinstance(tree[1], MethodExpression))
@@ -314,11 +315,11 @@ class Test_AstMethod(unittest.TestCase):
         self.assertEqual(tree[1]._parameters, '')
         self.assertEqual(tree[1]._returns, 'void')
 
-        self.assertTrue(isinstance(tree[2], MethodExpression))
-        self.assertTrue(tree[2]._constness)
-        self.assertEqual(tree[2]._identifier, 'bar3')
-        self.assertEqual(tree[2]._parameters, '')
-        self.assertEqual(tree[2]._returns, 'void')
+        # self.assertTrue(isinstance(tree[2], MethodExpression))
+        # self.assertTrue(tree[2]._constness)
+        # self.assertEqual(tree[2]._identifier, 'bar3')
+        # self.assertEqual(tree[2]._parameters, '')
+        # self.assertEqual(tree[2]._returns, 'void')
  
 
     def test_ClassWithoutFriend(self):

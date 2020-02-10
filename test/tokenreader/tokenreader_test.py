@@ -12,7 +12,7 @@ class Test_TokenReader(unittest.TestCase):
 
     def test_chars_are_preprocessed_before_use(self):
         mock = Mock(Preproc)
-        t = TokenReader(text=" ", preproc=mock)
+        t = TokenReader(text=" ", pre_process=mock)
         mock.Preprocess.assert_called()
 
     def test_only_spaces(self):
@@ -162,7 +162,12 @@ class Test_TokenReader(unittest.TestCase):
         token = t.get_next_token()
         self.assertEqual(token, Token(TokenType.operator_))
 
-    def test_identifierr_token(self):
+    def test_typename_token(self):
+        t = TokenReader(text="typename")
+        token = t.get_next_token()
+        self.assertEqual(token, Token(TokenType.typename_))
+
+    def test_identifier_token(self):
         t = TokenReader(text="Foo")
         token = t.get_next_token()
         self.assertEqual(token, Token(TokenType.identifier_, 'Foo'))

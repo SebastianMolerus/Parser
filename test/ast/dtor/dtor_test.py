@@ -1,6 +1,6 @@
 import unittest
-from expressions import *
 from ast import *
+
 
 class Test_AstDtor(unittest.TestCase):
 

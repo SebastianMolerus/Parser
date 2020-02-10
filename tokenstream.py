@@ -1,6 +1,5 @@
-from token_ import Token
 from token_ import TokenType
-from tokenreader import TokenReader
+
 
 class TokenStream:
     def __init__(self, token_reader):
@@ -9,29 +8,26 @@ class TokenStream:
         while True:
             token = token_reader.get_next_token()
             self._cache.append(token)
-            if token.type == TokenType._eof:
+            if token.kind == TokenType.eof_:
                 break
             
         if len(self._cache) > 0:
             self._currentIndex = -1
 
-
     def next(self):
         if self._currentIndex < len(self._cache) - 1:
-            self._currentIndex+=1
+            self._currentIndex += 1
             return True
         return False
-
 
     def prev(self):
         if self._currentIndex > 0:
-            self._currentIndex-=1
+            self._currentIndex -= 1
             return True
         return False
 
- 
     @property
-    def currentToken(self):
+    def current_token(self):
         return self._cache[self._currentIndex]
 
 

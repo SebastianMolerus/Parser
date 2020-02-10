@@ -2,45 +2,42 @@ import enum
 
 
 class TokenType(enum.Enum):
-
-    _identifier      =   1,
-    _namespace       =   2,
-    _class           =   3,
-    _struct          =   4,
-    _semicolon       =   5,     # ;
-    _colon           =   6,     # :
-    _opening_bracket =   7,     # {
-    _closing_bracket =   8,     # }
-    _params_begin    =   9,     # (
-    _params_end      =   10,    # )
-    _public          =   11,
-    _private         =   12,
-    _protected       =   13,
-    _comma           =   14,    # ,
-    _eof             =   15,
-    _ref             =   16,    # &,
-    _star            =   17,    # *
-    _preproc         =   18,    # #
-    _tilde           =   19,    # ~
-    _const           =   20,
-    _equal           =   21,
-    _typedef         =   22,
-    _typename        =   23,
-    _virtual         =   24,
-    _friend          =   25,
-    _template        =   26,
-    _operator        =   27
+    identifier_ = 1,
+    namespace_ = 2,
+    class_ = 3,
+    struct_ = 4,
+    semicolon_ = 5,         # ;
+    colon_ = 6,             # :
+    opening_bracket_ = 7,   # {
+    closing_bracket_ = 8,   # }
+    params_begin_ = 9,      # (
+    params_end_ = 10,       # )
+    public_ = 11,
+    private_ = 12,
+    protected_ = 13,
+    comma_ = 14,            # ,
+    eof_ = 15,
+    ref_ = 16,              # &,
+    star_ = 17,             # *
+    hash_ = 18,             # #
+    tilde_ = 19,            # ~
+    const_ = 20,
+    equal_ = 21,
+    typedef_ = 22,
+    typename_ = 23,
+    virtual_ = 24,
+    friend_ = 25,
+    template_ = 26,
+    operator_ = 27
 
 
 class Token:
-
-    def __init__(self, type, content = ""):
-        self.type = type
+    def __init__(self, kind, content=""):
+        self.kind = kind
         self.content = content
 
-    
     def __eq__(self, other):
-        if self.type == TokenType._identifier:
-            return self.type == other.type and self.content == other.content
+        if self.kind == TokenType.identifier_:
+            return self.kind == other.kind and self.content == other.content
         else:
-            return self.type == other.type
+            return self.kind == other.kind

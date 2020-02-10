@@ -14,7 +14,7 @@ class Expression(object, Node):
         m = chr(196) * 3    # ---
         size_of_special_chars = len(z) + len(m)
 
-        s =  (indent - (indent* size_of_special_chars)) * ' ' + str(type(self)) + self._identifier
+        s = (indent - (indent * size_of_special_chars)) * ' ' + str(type(self)) + self._identifier
         for c in self._children:
             s += '\n'
             s += indent * ' '
@@ -24,10 +24,8 @@ class Expression(object, Node):
         
         return s
 
-
     def __str__(self):
         return self._print_all()
-
 
     def __eq__(self, expr):
         return self._identifier == expr._identifier and isinstance(expr, type(self))
@@ -36,29 +34,24 @@ class Expression(object, Node):
 class ClassExpression(Expression):
     def __init__(self, identifier):
         Expression.__init__(self, identifier)
-        self._currentScope = TokenType._private
+        self._currentScope = TokenType.private_
         self._isFriendInside = False
-
 
     def _set_scope_from_scope_token(self, scope_token):
         '''Sets current scope only if given token is about scope.'''
-        if scope_token == TokenType._public or \
-           scope_token == TokenType._private or \
-           scope_token == TokenType._protected:
+        if scope_token == TokenType.public_ or \
+           scope_token == TokenType.private_ or \
+           scope_token == TokenType.protected_:
             self._currentScope = scope_token
-
 
     def _friend_inside_spotted(self):
         self._isFriendInside = True
 
-
     def is_friend_inside(self):
         return self._isFriendInside
 
-
     def get_current_scope(self):
         return self._currentScope
-
 
 
 class NamespaceExpression(Expression):
@@ -79,7 +72,6 @@ class CTorExpression(Expression):
         Expression.__init__(self, identifier)
         self._parameters = parameters
 
-
     def __eq__(self, expr):
         return Expression.__eq__(self, expr) and self._parameters == expr._parameters
 
@@ -87,6 +79,7 @@ class CTorExpression(Expression):
 class DTorExpression(Expression):
     def __init__(self, identifier):
         Expression.__init__(self, identifier)
+
 
 class OperatorExpression(Expression):
     def __init__(self, identifier, parameters, returns):

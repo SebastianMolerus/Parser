@@ -13,17 +13,15 @@ class AbstractTreeBuilder:
 
         self.tokenStream = TokenStream(self.tokenReader)
 
-
     def build_ast(self):
 
-        ASTTree = Expression('Root')
+        asttree = Expression('Root')
 
         while self.tokenStream.next():
-            expr = self._try_parse_expression(ASTTree)
+            expr = self._try_parse_expression(asttree)
             if expr is not None:
-                ASTTree.attach(expr)
-        return ASTTree
-
+                asttree.attach(expr)
+        return asttree
 
     def _try_parse_expression(self, context = None):
         '''Main dispatch method for all expresions.
@@ -36,34 +34,33 @@ class AbstractTreeBuilder:
         
         '''
 
-        CurrentToken = self.tokenStream.currentToken
+        current_token = self.tokenStream.current_token
 
-        if CurrentToken.type == TokenType._template:
+        if current_token.kind == TokenType.template_:
             pass
 
-        if CurrentToken.type == TokenType._typedef:
+        if current_token.kind == TokenType.typedef_:
             while self.tokenStream.next():
-                if self._current_type() == TokenType._semicolon:
+                if self._current_type() == TokenType.semicolon_:
                     break
             return None
 
-        if CurrentToken.type == TokenType._namespace:
+        if current_token.kind == TokenType.namespace_:
             return self._parse_namespace(context)
 
-        if CurrentToken.type == TokenType._class:
+        if current_token.kind == TokenType.class_:
             return self._parse_class(context)
 
-        if CurrentToken.type == TokenType._params_begin:
+        if current_token.kind == TokenType.params_begin_:
             return self._parse_params(context)
 
-        if CurrentToken.type == TokenType._tilde:
+        if current_token.kind == TokenType.tilde_:
             return self._parse_dtor(context)
 
-        if CurrentToken.type == TokenType._operator:
+        if current_token.kind == TokenType.operator_:
             return self._parse_operator(context)
 
         return None
-
 
     def _parse_namespace(self, context):
 
@@ -72,15 +69,15 @@ class AbstractTreeBuilder:
         self.tokenStream.next()
 
         # consume identifier
-        if self._current_type() != TokenType._identifier:
+        if self._current_type() != TokenType.identifier_:
             raise Exception("Identifier expected after namespace keyword")
 
         # we have identifier
         parsed_namespace  = NamespaceExpression(self._current_content())
-        
+
         self.tokenStream.next()
 
-        if self._current_type() != TokenType._opening_bracket:
+        if self._current_type() != TokenType.opening_bracket_:
             raise Exception("No opening brackets after namespace identifier")
 
         # currentToken == token.opening_brackets
@@ -88,17 +85,15 @@ class AbstractTreeBuilder:
         while self.tokenStream.next():
 
             # we're done
-            if self._current_type() == TokenType._closing_bracket:
+            if self._current_type() == TokenType.closing_bracket_:
                 break
 
             expr = self._try_parse_expression(parsed_namespace)
             if expr is None:
                 continue
-            print "Node {} added into {}.".format(expr._identifier ,parsed_namespace._identifier)
             parsed_namespace.attach(expr)
 
         return parsed_namespace
-
 
     def _parse_class(self, context):
         # we have class already
@@ -106,22 +101,22 @@ class AbstractTreeBuilder:
         self.tokenStream.next()
 
         # consume identifier
-        if self._current_type() != TokenType._identifier:
+        if self._current_type() != TokenType.identifier_:
             raise Exception("Identifier expected after class keyword")
 
         # we have identifier
-        parsedClass = ClassExpression(self._current_content())
+        parsed_class = ClassExpression(self._current_content())
 
         self.tokenStream.next()
 
         # we have something...
 
         # ...maybe forwarded class
-        if self._current_type() == TokenType._semicolon:
+        if self._current_type() == TokenType.semicolon_:
             return None
 
         # ...move after opening bracket
-        while self._current_type() != TokenType._opening_bracket:
+        while self._current_type() != TokenType.opening_bracket_:
             self.tokenStream.next()
 
         # currentToken == token.opening_brackets
@@ -129,46 +124,33 @@ class AbstractTreeBuilder:
         while self.tokenStream.next():
 
             # friend inside class
-            if self._current_type() == TokenType._friend:
-                parsedClass._friend_inside_spotted()
+            if self._current_type() == TokenType.friend_:
+                parsed_class._friend_inside_spotted()
 
             # take care of public, prot, private
-            parsedClass._set_scope_from_scope_token(self._current_type())
+            parsed_class._set_scope_from_scope_token(self._current_type())
 
             # we're done
-            if self._current_type() == TokenType._closing_bracket:
+            if self._current_type() == TokenType.closing_bracket_:
                 break
 
-            expr = self._try_parse_expression(parsedClass)
+            expr = self._try_parse_expression(parsed_class)
             if expr is None:
                 continue
-            print "Node {} added into {}.".format(expr._identifier ,parsedClass._identifier)
-            parsedClass.attach(expr)
+            parsed_class.attach(expr)
 
-        return parsedClass
-
+        return parsed_class
 
     def _parse_params(self, context):
         """Used as dispatch method for parsing
-        
+
         everything from TokenType._params_begin
-        
+
         """
         if self._is_ctor(context):
             return self._parse_ctor(context)
         else:
-            return self._parse_method(context) 
- 
-        # parsedExpr = self._parse_ctor(context) 
-        # if parsedExpr is not None:
-        #     return parsedExpr
-
-        # parsedExpr = self._parse_method(context) 
-        # if parsedExpr is not None:
-        #     return parsedExpr
-
-        #return None
-
+            return self._parse_method(context)
 
     def _parse_ctor(self, context):
         '''Used for parsing class ctor.'''
@@ -177,30 +159,29 @@ class AbstractTreeBuilder:
 
         if not self._is_public_scope(context):
             return None
-        
-        cTorName = context._identifier
-        strParams = ''
+
+        c_tor_name = context._identifier
+        str_params = ''
 
         if self._get_identifier_from_left() != context._identifier:
             return None
-        
-        # at Params_begin
-        ctorParamsTokens = self._get_all_valid_next_tokens(not_valid_tokens = [TokenType._params_end])
-        
-        strParams = self._convert_param_tokens_to_string(ctorParamsTokens)
 
-        while self._current_type() != TokenType._params_end:
+        # at Params_begin
+        ctorParamsTokens = self._get_all_valid_next_tokens(not_valid_tokens = [TokenType.params_end_])
+
+        str_params = self._convert_param_tokens_to_string(ctorParamsTokens)
+
+        while self._current_type() != TokenType.params_end_:
             self.tokenStream.next()
         # at Params_end
 
         self.tokenStream.next()
-        if self._current_type() == TokenType._semicolon:
-            return CTorExpression(cTorName, strParams)
+        if self._current_type() == TokenType.semicolon_:
+            return CTorExpression(c_tor_name, str_params)
         else:
-            while self._current_type() != TokenType._closing_bracket:
+            while self._current_type() != TokenType.closing_bracket_:
                 self.tokenStream.next()
         return None
-
 
     def _parse_dtor(self, context):
         '''Used for parsing class dtor.'''
@@ -209,93 +190,91 @@ class AbstractTreeBuilder:
 
         if not self._is_public_scope(context):
             return None
-        
-        dTorName = context._identifier
 
-        while self._current_type() != TokenType._params_end:
+        d_tor_name = context._identifier
+
+        while self._current_type() != TokenType.params_end_:
             self.tokenStream.next()
 
         self.tokenStream.next()
 
-        if self._current_type() == TokenType._semicolon:
-            return DTorExpression(dTorName)
+        if self._current_type() == TokenType.semicolon_:
+            return DTorExpression(d_tor_name)
         else:
-            while self._current_type() != TokenType._closing_bracket:
+            while self._current_type() != TokenType.closing_bracket_:
                 self.tokenStream.next()
 
         return None
 
-
     def _parse_method(self, context):
         '''Used for parsing class methods.
-    
+
         starting at params_begin token.
 
         '''
 
         if not self._is_proper_class_context(context):
             return None
-        if not self._is_public_scope(context):
+        if not AbstractTreeBuilder._is_public_scope(context):
             return None
 
-        assert(self._current_type() == TokenType._params_begin)
+        assert(self._current_type() == TokenType.params_begin_)
 
         if not context.is_friend_inside() and \
-            (context.get_current_scope() == TokenType._protected or context.get_current_scope() == TokenType._private):
+            (context.get_current_scope() == TokenType.protected_ or context.get_current_scope() == TokenType.private_):
             return None
 
-        methodIdentifier = self._get_identifier_from_left()
+        method_identifier = self._get_identifier_from_left()
 
-        if methodIdentifier == context._identifier:
+        if method_identifier == context._identifier:
             return None
 
         # at Return_Params_begin
 
-        methodReturnTokens = self._get_method_return_type()
-        strReturns = self._convert_param_tokens_to_string(methodReturnTokens)
+        method_return_tokens = self._get_method_return_type()
+        str_returns = self._convert_param_tokens_to_string(method_return_tokens)
 
         # at Return_Params_end
 
         # at Params_begin
 
-        methodParamsTokens = self._get_all_valid_next_tokens(not_valid_tokens = [TokenType._params_end])
-        strParams = self._convert_param_tokens_to_string(methodParamsTokens)
+        method_params_tokens = self._get_all_valid_next_tokens(not_valid_tokens = [TokenType.params_end_])
+        str_params = self._convert_param_tokens_to_string(method_params_tokens)
 
-        while self._current_type() != TokenType._params_end:
+        while self._current_type() != TokenType.params_end_:
             self.tokenStream.next()
 
         # at Params_end
-        
-        afterParametersTokens = \
-            self._get_all_valid_next_tokens(not_valid_tokens = \
-                [TokenType._semicolon, TokenType._opening_bracket])
 
-        methodConstness = False
-        for token in afterParametersTokens:
-            if token.type == TokenType._const:
-                methodConstness = True
+        after_parameters_tokens = \
+            self._get_all_valid_next_tokens(not_valid_tokens = \
+                [TokenType.semicolon_, TokenType.opening_bracket_])
+
+        method_constness = False
+        for token in after_parameters_tokens:
+            if token.kind == TokenType.const_:
+                method_constness = True
 
             # pure virtual
-            if token.type == TokenType._equal:
+            if token.kind == TokenType.equal_:
                 return None
 
         while self.tokenStream.next():
-            if self._current_type() == TokenType._semicolon or \
-                self._current_type() == TokenType._opening_bracket:
+            if self._current_type() == TokenType.semicolon_ or \
+               self._current_type() == TokenType.opening_bracket_:
                 break
-            
-        if self._current_type() == TokenType._semicolon:
-            return  MethodExpression(methodIdentifier,
-                                    strParams,
-                                    strReturns,
-                                    methodConstness)
+
+        if self._current_type() == TokenType.semicolon_:
+            return  MethodExpression(method_identifier,
+                                     str_params,
+                                     str_returns,
+                                     method_constness)
 
         else:
-            while self._current_type() != TokenType._closing_bracket:
+            while self._current_type() != TokenType.closing_bracket_:
                 self.tokenStream.next()
 
         return None
-
 
     def _parse_operator(self,context):
         '''Used for parsing class operator.'''
@@ -306,41 +285,38 @@ class AbstractTreeBuilder:
         if not self._is_public_scope(context):
             return None
 
-        operatorIdStr = ''
+        operator_id_str = ''
         self.tokenStream.next()
-            
-        while self._current_type() != TokenType._params_begin:
-            operatorIdStr += self._current_content()
-            self.tokenStream.next()
-        
-        operatorReturnTokens = self._get_method_return_type()
-        del operatorReturnTokens[-1]
-        strReturns = self._convert_param_tokens_to_string(operatorReturnTokens)
 
-        operatorParamsTokens = self._get_all_valid_next_tokens(not_valid_tokens = [TokenType._params_end])
-        strParams = self._convert_param_tokens_to_string(operatorParamsTokens)
-
-        while self._current_type() != TokenType._params_end:
+        while self._current_type() != TokenType.params_begin_:
+            operator_id_str += self._current_content()
             self.tokenStream.next()
 
+        operator_return_tokens = self._get_method_return_type()
+        del operator_return_tokens[-1]
+        str_returns = self._convert_param_tokens_to_string(operator_return_tokens)
+
+        operator_params_tokens = self._get_all_valid_next_tokens(not_valid_tokens = [TokenType.params_end_])
+        str_params = self._convert_param_tokens_to_string(operator_params_tokens)
+
+        while self._current_type() != TokenType.params_end_:
+            self.tokenStream.next()
+
         self.tokenStream.next()
-        if self._current_type() == TokenType._semicolon:
-            return OperatorExpression(operatorIdStr, strParams, strReturns)
+        if self._current_type() == TokenType.semicolon_:
+            return OperatorExpression(operator_id_str, str_params, str_returns)
         else:
-            while self._current_type() != TokenType._closing_bracket:
+            while self._current_type() != TokenType.closing_bracket_:
                 self.tokenStream.next()
         return None
 
-
     def _current_type(self):
         '''Returns current token type eq: TokenType._eof, TokenType._identifier'''
-        return self.tokenStream.currentToken.type
-
+        return self.tokenStream.current_token.kind
 
     def _current_content(self):
         '''Returns current token content eq: Foo, uint32_t'''
-        return self.tokenStream.currentToken.content
-
+        return self.tokenStream.current_token.content
 
     def _is_ctor(self,context):
         if not isinstance(context, ClassExpression):
@@ -349,94 +325,51 @@ class AbstractTreeBuilder:
             return False
         return True
 
-
-    def _is_proper_class_context(self,context):
+    @staticmethod
+    def _is_proper_class_context(context):
         if context is None:
             return False
         if not isinstance(context, ClassExpression):
             return False
         return True
 
-
-    def _convert_param_tokens_to_string(self, methodParamsTokens):
-        strMethodParams = ''
-        for methodParamToken in methodParamsTokens:
-            if (methodParamToken.type == TokenType._ref) or (methodParamToken.type == TokenType._star) or (methodParamToken.type == TokenType._colon):
+    @staticmethod
+    def _convert_param_tokens_to_string(method_params_tokens):
+        str_method_params = ''
+        for methodParamToken in method_params_tokens:
+            if (methodParamToken.kind == TokenType.ref_) or \
+               (methodParamToken.kind == TokenType.star_) or \
+               (methodParamToken.kind == TokenType.colon_):
                 pass
             else:
-                strMethodParams +=' '
-            strMethodParams += methodParamToken.content
-        strMethodParams = strMethodParams.replace(" ,",",")
-        strMethodParams = strMethodParams.replace(": ",":")
-        strMethodParams = strMethodParams.strip()
-        return strMethodParams
-    
+                str_method_params += ' '
+            str_method_params += methodParamToken.content
+        str_method_params = str_method_params.replace(" ,", ",")
+        str_method_params = str_method_params.replace(": ", ":")
+        str_method_params = str_method_params.strip()
+        return str_method_params
 
-    def _is_public_scope(self, context):
-        if (context.get_current_scope() == TokenType._public):
+    @staticmethod
+    def _is_public_scope(context):
+        if context.get_current_scope() == TokenType.public_:
             return True
         return False
-
-
-    def _get_all_valid_previous_tokens(self, not_valid_tokens, offset = 0):
-        '''This method returns list of all tokens parsed backward till
-           it reaches some of given not_valid_tokens.
-
-           offset value enables to move backward start point of parsing.
-        
-        '''
-        assert(offset >= 0)
-
-        if not_valid_tokens is None:
-            raise Exception("No arguments given.")
-
-        originalPositionToken = self.tokenStream.currentToken
-
-        howManySteps = offset
-
-        # move backward
-        while offset > 0:
-            assert(self.tokenStream.prev())
-            offset -= 1
-
-        result = []
-
-        while self.tokenStream.prev():
-            howManySteps += 1
-
-            # Not valid token
-            if self._current_type() in not_valid_tokens:
-                break
-
-            result.append(self.tokenStream.currentToken)
-
-        # move forward to original position
-        for i in range(howManySteps):
-            self.tokenStream.next()
-
-        # check for original position
-        assert(originalPositionToken is self.tokenStream.currentToken)
-
-        result.reverse()
-
-        return result
-
 
     def _get_all_valid_next_tokens(self, not_valid_tokens, offset = 0):
         '''This method returns list of all tokens parsed forward till
            it reaches some of given not_valid_tokens.
 
            offset value enables to move forward start point of parsing.
-        
+
         '''
         assert(offset >= 0)
 
         if not_valid_tokens is None:
             raise Exception("No arguments given.")
 
-        originalPositionToken = self.tokenStream.currentToken
+        original_position_token = self.tokenStream.current_token
 
-        howManySteps = offset
+        how_many_steps = offset
 
         # move forward
         while offset > 0:
@@ -446,37 +379,35 @@ class AbstractTreeBuilder:
         result = []
 
         while self.tokenStream.next():
-            howManySteps += 1
+            how_many_steps += 1
 
             # Not valid token
             if self._current_type() in not_valid_tokens:
                 break
 
-            result.append(self.tokenStream.currentToken)
+            result.append(self.tokenStream.current_token)
 
         # move backward to original position
-        for i in range(howManySteps):
+        for i in range(how_many_steps):
             self.tokenStream.prev()
 
         # check for original position
-        assert(originalPositionToken is self.tokenStream.currentToken)
+        assert(original_position_token is self.tokenStream.current_token)
 
         return result
 
-
     def _get_identifier_from_left(self):
-        idFromLeftName = ''
-        if self._current_type() == TokenType._params_begin:
+        id_from_left_name = ''
+        if self._current_type() == TokenType.params_begin_:
             self.tokenStream.prev()
-            idFromLeftName += self._current_content()
+            id_from_left_name += self._current_content()
             self.tokenStream.next()
-        return idFromLeftName
-
+        return id_from_left_name
 
     def _get_method_return_type(self):
         '''Get return type for method starting from params begin.
         From caller perspective this method does not move tokenStream.
-        
+
         Parsing backward and get all tokens as method return type.
 
         if we get -> _opening_bracket, _closing_bracket or _semicolon we are done.
@@ -486,66 +417,56 @@ class AbstractTreeBuilder:
 
         '''
 
-        assert(self._current_type() == TokenType._params_begin)
+        assert(self._current_type() == TokenType.params_begin_)
 
-        stopParsingTokens = [TokenType._opening_bracket,
-                             TokenType._closing_bracket,
-                             TokenType._semicolon]
+        stop_parsing_tokens = [TokenType.opening_bracket_,
+                               TokenType.closing_bracket_,
+                               TokenType.semicolon_]
 
-        originalPositionToken = self.tokenStream.currentToken
+        original_position_token = self.tokenStream.current_token
 
         # At method identifier
         assert(self.tokenStream.prev())
-        howManySteps = 1
+        how_many_steps = 1
 
         result = []
 
         while self.tokenStream.prev():
-            howManySteps += 1
+            how_many_steps += 1
 
             # We are done finally
-            if self._current_type() in stopParsingTokens:
+            if self._current_type() in stop_parsing_tokens:
                 break
 
             # Are we done ?
-            if self._current_type() == TokenType._colon:
-                t1 = self.tokenStream.currentToken
+            if self._current_type() == TokenType.colon_:
+                t1 = self.tokenStream.current_token
                 assert(self.tokenStream.prev())
-                howManySteps+=1
+                how_many_steps+=1
                 # no this is namespace only
-                if self._current_type() == TokenType._colon:
-                    t2 = self.tokenStream.currentToken
+                if self._current_type() == TokenType.colon_:
+                    t2 = self.tokenStream.current_token
                     result.append(t1)
                     result.append(t2)
                     continue
                 # this is part of scope we are done
                 else:
                     break
-              
-            result.append(self.tokenStream.currentToken)
+
+            result.append(self.tokenStream.current_token)
 
         # move forward to original position
-        for i in range(howManySteps):
+        for i in range(how_many_steps):
             self.tokenStream.next()
 
         # check for original position
-        assert(originalPositionToken is self.tokenStream.currentToken)
+        assert(original_position_token is self.tokenStream.current_token)
 
         for item in result:
-            if item.type == TokenType._virtual:
+            if item.kind == TokenType.virtual_:
                 result.remove(item)
                 break
 
         result.reverse()
 
         return result
-
-
-# tree = AbstractTreeBuilder(source_code="""
-#         class Foo{
-#             public:
-#             void metoda(int a);
-#         };
-# """)
-
-# print tree.build_ast()

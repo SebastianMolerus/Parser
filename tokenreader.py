@@ -71,78 +71,78 @@ class TokenReader:
         self._try_build_alnum_identifier()
 
         if self._identifier == r"namespace":
-            return Token(TokenType._namespace, 'namespace')
+            return Token(TokenType.namespace_, 'namespace')
 
         if self._identifier == r"class":
-            return Token(TokenType._class, 'class')
+            return Token(TokenType.class_, 'class')
 
         if self._identifier == r"struct":
-            return Token(TokenType._struct, 'struct')
+            return Token(TokenType.struct_, 'struct')
 
         if self._identifier == r";":
-            return Token(TokenType._semicolon, ';')
+            return Token(TokenType.semicolon_, ';')
 
         if self._identifier == r":":
-            return Token(TokenType._colon, ':')
+            return Token(TokenType.colon_, ':')
 
         if self._identifier == r"{":
-            return Token(TokenType._opening_bracket, '{')
+            return Token(TokenType.opening_bracket_, '{')
 
         if self._identifier == r"}":
-            return Token(TokenType._closing_bracket, '}')
+            return Token(TokenType.closing_bracket_, '}')
 
         if self._identifier == r"(":
-            return Token(TokenType._params_begin, '(')
+            return Token(TokenType.params_begin_, '(')
 
         if self._identifier == r")":
-            return Token(TokenType._params_end, ')')
+            return Token(TokenType.params_end_, ')')
 
         if self._identifier == r"public":
-            return Token(TokenType._public, 'public')
+            return Token(TokenType.public_, 'public')
 
         if self._identifier == r"private":
-            return Token(TokenType._private, 'private')
+            return Token(TokenType.private_, 'private')
 
         if self._identifier == r"protected":
-            return Token(TokenType._protected, 'protected')
+            return Token(TokenType.protected_, 'protected')
 
         if self._identifier == r",":
-            return Token(TokenType._comma, ',')
+            return Token(TokenType.comma_, ',')
 
         if self._identifier == r"*":
-            return Token(TokenType._star, '*')
+            return Token(TokenType.star_, '*')
             
         if self._identifier == r"&":
-            return Token(TokenType._ref, '&')
+            return Token(TokenType.ref_, '&')
 
         if self._identifier == r"~":
-            return Token(TokenType._tilde, '~')
+            return Token(TokenType.tilde_, '~')
 
         if self._identifier == r"const":
-            return Token(TokenType._const, 'const')
+            return Token(TokenType.const_, 'const')
 
         if self._identifier == r"=":
-            return Token(TokenType._equal, '=')
+            return Token(TokenType.equal_, '=')
 
         if self._identifier == r"typedef":
-            return Token(TokenType._typedef, 'typedef')
+            return Token(TokenType.typedef_, 'typedef')
 
         if self._identifier == r"typename":
-            return Token(TokenType._typename, 'typename')
+            return Token(TokenType.typename_, 'typename')
 
         if self._identifier == r"virtual":
-            return Token(TokenType._virtual, 'virtual')
+            return Token(TokenType.virtual_, 'virtual')
 
         if self._identifier == r"friend":
-            return Token(TokenType._friend, 'friend')
+            return Token(TokenType.friend_, 'friend')
 
         if self._identifier == r"template":
-            return Token(TokenType._template, 'template')
+            return Token(TokenType.template_, 'template')
 
         if self._identifier == r"operator":
-            return Token(TokenType._operator, 'operator')
+            return Token(TokenType.operator_, 'operator')
 
         if self._identifier == r"e0f":
-            return Token(TokenType._eof)
+            return Token(TokenType.eof_)
 
-        return Token(TokenType._identifier, self._identifier)
+        return Token(TokenType.identifier_, self._identifier)

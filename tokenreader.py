@@ -118,6 +118,8 @@ class TokenReader:
             return Token(TokenType.template_, 'template')
         if self._identifier == r"operator":
             return Token(TokenType.operator_, 'operator')
+        if self._identifier == r"#":
+            return Token(TokenType.hash_, '#')
         if self._identifier == r"e0f":
             return Token(TokenType.eof_)
         return Token(TokenType.identifier_, self._identifier)

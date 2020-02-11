@@ -1,5 +1,5 @@
 from tokenstream import *
-from tokenreader import *
+from tokrdr import *
 from expressions import *
 
 

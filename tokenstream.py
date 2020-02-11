@@ -1,4 +1,4 @@
-from token_ import TokenType
+from tok import TokenType
 
 
 class TokenStream:

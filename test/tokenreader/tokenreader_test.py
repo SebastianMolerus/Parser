@@ -3,11 +3,11 @@ from parameterized import parameterized
 
 from mock import Mock
 
-from tokenreader import TokenReader
-from token_ import TokenType
-from token_ import Token
+from tokrdr import TokenReader
+from tok import TokenType
+from tok import Token
 
-from preproc import Preproc
+from pproc import Preproc
 
 
 class Test_TokenReader(unittest.TestCase):

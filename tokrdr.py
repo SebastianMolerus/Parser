@@ -1,6 +1,6 @@
-from token_ import TokenType
-from token_ import Token
-from preproc import Preproc
+from tok import TokenType
+from tok import Token
+from pproc import Preproc
 
 
 class TokenReader:

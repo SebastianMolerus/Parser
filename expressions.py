@@ -1,5 +1,5 @@
 from nodes import Node
-from tokenreader import TokenType
+from tokrdr import TokenType
 
 
 class Expression(object, Node):

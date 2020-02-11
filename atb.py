@@ -4,26 +4,26 @@ from expressions import *
 
 
 class AbstractTreeBuilder:
-    def __init__(self, source_code = None, file = None):
+    def __init__(self, source_code=None, file_path=None):
 
         if source_code is not None:
             self.tokenReader = TokenReader(text=source_code)
         else:
-            self.tokenReader = TokenReader(file=file)
+            self.tokenReader = TokenReader(file=file_path)
 
         self.tokenStream = TokenStream(self.tokenReader)
 
     def build_ast(self):
 
-        asttree = Expression('Root')
+        ast_tree = Expression('Root')
 
         while self.tokenStream.next():
-            expr = self._try_parse_expression(asttree)
+            expr = self._try_parse_expression(ast_tree)
             if expr is not None:
-                asttree.attach(expr)
-        return asttree
+                ast_tree.attach(expr)
+        return ast_tree
 
-    def _try_parse_expression(self, context = None):
+    def _try_parse_expression(self, context=None):
         '''Main dispatch method for all expresions.
         
         Every method called from here should return 
@@ -73,7 +73,7 @@ class AbstractTreeBuilder:
             raise Exception("Identifier expected after namespace keyword")
 
         # we have identifier
-        parsed_namespace  = NamespaceExpression(self._current_content())
+        parsed_namespace = NamespaceExpression(self._current_content())
 
         self.tokenStream.next()
 
@@ -276,7 +276,7 @@ class AbstractTreeBuilder:
 
         return None
 
-    def _parse_operator(self,context):
+    def _parse_operator(self, context):
         '''Used for parsing class operator.'''
 
         if not self._is_proper_class_context(context):
@@ -318,7 +318,7 @@ class AbstractTreeBuilder:
         '''Returns current token content eq: Foo, uint32_t'''
         return self.tokenStream.current_token.content
 
-    def _is_ctor(self,context):
+    def _is_ctor(self, context):
         if not isinstance(context, ClassExpression):
             return False
         if self._get_identifier_from_left() != context._identifier:
@@ -355,7 +355,7 @@ class AbstractTreeBuilder:
             return True
         return False
 
-    def _get_all_valid_next_tokens(self, not_valid_tokens, offset = 0):
+    def _get_all_valid_next_tokens(self, not_valid_tokens, offset=0):
         '''This method returns list of all tokens parsed forward till
            it reaches some of given not_valid_tokens.
 

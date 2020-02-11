@@ -7,39 +7,38 @@ from tokrdr import TokenReader
 from tok import TokenType
 from tok import Token
 
-from pproc import Preproc
+from pproc import PreProcess
 
 
 class Test_TokenReader(unittest.TestCase):
-
     def test_chars_are_preprocessed_before_use(self):
-        mock = Mock(Preproc)
+        mock = Mock(PreProcess)
         t = TokenReader(text=" ", pre_process=mock)
-        mock.Preprocess.assert_called()
+        mock.pre_process.assert_called()
 
     def test_only_spaces(self):
         t = TokenReader(text="\n   \t   ")
         end_token = t.get_next_token()
         self.assertEqual(end_token, Token(TokenType.eof_))
 
-    def test_floor_is_part_of_alnum(self):
+    def test_floor_is_part_of_alphanumerical(self):
         t = TokenReader(text="a_aa bbb")
         token = t.get_next_token()
         self.assertEqual(token, Token(TokenType.identifier_, 'a_aa'))
 
-    def test_not_alnum_is_not_part_of_identifier_token(self):
+    def test_not_alphanumerical_is_not_part_of_identifier_token(self):
         t = TokenReader(text="bbb&ccc")
         token = t.get_next_token()
         self.assertEqual(token, Token(TokenType.identifier_, 'bbb'))
 
-    def test_oneline_commented_code(self):
+    def test_one_line_commented_code(self):
         t = TokenReader(text='''// bbb
         aaa
         ''')
         token = t.get_next_token()
         self.assertEqual(token, Token(TokenType.identifier_, 'aaa'))
 
-    def test_multiline_commented_code(self):
+    def test_multi_line_commented_code(self):
         t = TokenReader(text='''\
         /* bbb
         aaa

@@ -7,7 +7,6 @@ class Expression(object, Node):
         self._identifier = identifier
         Node.__init__(self)
 
-
     def _print_all(self, indent = 0):
 
         z = chr(192)        # \

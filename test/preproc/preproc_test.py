@@ -1,5 +1,5 @@
 import unittest
-from pproc import Preproc
+from pproc import PreProcess
 
 
 class Test_Preproc(unittest.TestCase):
@@ -10,8 +10,8 @@ class Test_Preproc(unittest.TestCase):
         for char in "//":
             source.append(char)
         
-        p = Preproc(source)
-        processed = p.Preprocess()
+        p = PreProcess(source)
+        processed = p.pre_process()
 
         self.assertNotIn('/', processed)
 
@@ -21,8 +21,8 @@ class Test_Preproc(unittest.TestCase):
         for char in "/":
             source.append(char)
         
-        p = Preproc(source)
-        processed = p.Preprocess()
+        p = PreProcess(source)
+        processed = p.pre_process()
 
         self.assertIn('/', processed)
 
@@ -32,8 +32,8 @@ class Test_Preproc(unittest.TestCase):
         for char in "a*":
             source.append(char)
         
-        p = Preproc(source)
-        processed = p.Preprocess()
+        p = PreProcess(source)
+        processed = p.pre_process()
 
         self.assertIn('*', processed)
 
@@ -43,8 +43,8 @@ class Test_Preproc(unittest.TestCase):
         for char in "//a":
             source.append(char)
         
-        p = Preproc(source)
-        processed = p.Preprocess()
+        p = PreProcess(source)
+        processed = p.pre_process()
 
         self.assertNotIn('a', processed)
 
@@ -54,8 +54,8 @@ class Test_Preproc(unittest.TestCase):
         for char in "//a\nb":
             source.append(char)
         
-        p = Preproc(source)
-        processed = p.Preprocess()
+        p = PreProcess(source)
+        processed = p.pre_process()
 
         self.assertIn('b', processed)
 
@@ -65,8 +65,8 @@ class Test_Preproc(unittest.TestCase):
         for char in "//\n":
             source.append(char)
         
-        p = Preproc(source)
-        processed = p.Preprocess()
+        p = PreProcess(source)
+        processed = p.pre_process()
 
         self.assertIn('\n', processed)
 
@@ -76,8 +76,8 @@ class Test_Preproc(unittest.TestCase):
         for char in "bbb/*\nccc\n*/aaa":
             source.append(char)
         
-        p = Preproc(source)
-        processed = p.Preprocess()
+        p = PreProcess(source)
+        processed = p.pre_process()
 
         self.assertNotIn('/', processed)
 
@@ -87,8 +87,8 @@ class Test_Preproc(unittest.TestCase):
         for char in "/**/abc":
             source.append(char)
         
-        p = Preproc(source)
-        processed = p.Preprocess()
+        p = PreProcess(source)
+        processed = p.pre_process()
 
         self.assertNotIn('*', processed)
 
@@ -98,8 +98,8 @@ class Test_Preproc(unittest.TestCase):
         for char in "/*ab//c*de\n /fg//hi\n jkl*/":
             source.append(char)
         
-        p = Preproc(source)
-        processed = p.Preprocess()
+        p = PreProcess(source)
+        processed = p.pre_process()
 
         self.assertEqual(len(processed), 0)
 

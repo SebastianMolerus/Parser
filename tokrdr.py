@@ -1,6 +1,6 @@
 from tok import TokenType
 from tok import Token
-from pproc import Preproc
+from pproc import PreProcess
 
 
 class TokenReader:
@@ -38,8 +38,8 @@ class TokenReader:
         self._characters.append('f') 
         self._characters.append('$')
 
-        self._pre_process = pre_process or Preproc(self._characters)
-        self._characters = self._pre_process.Preprocess()
+        self._pre_process = pre_process or PreProcess(self._characters)
+        self._characters = self._pre_process.pre_process()
 
     def _continue_build_alphanumerical_identifier(self):
         while True:

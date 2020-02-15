@@ -1,9 +1,10 @@
 import unittest
-from atb import *
+from TreeBuilder.atb import AbstractTreeBuilder
+from TreeBuilder.expressions import ClassExpression
+from TreeBuilder.expressions import  OperatorExpression
+
 
 class Test_AstOperator(unittest.TestCase):
-
-
     def test_OnePublicAssignOperator(self):
         tree = AbstractTreeBuilder(source_code="""
         class A{

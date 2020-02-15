@@ -1,8 +1,8 @@
 import unittest
-from atb import AbstractTreeBuilder
-from expressions import CTorExpression
-from expressions import ClassExpression
-from expressions import NamespaceExpression
+from TreeBuilder.atb import AbstractTreeBuilder
+from TreeBuilder.expressions import CTorExpression
+from TreeBuilder.expressions import ClassExpression
+from TreeBuilder.expressions import NamespaceExpression
 
 
 class Test_AstCtor(unittest.TestCase):
@@ -96,7 +96,7 @@ class Test_AstCtor(unittest.TestCase):
         self.assertEqual(tree[1], CTorExpression('A', ''))
 
         self.assertTrue(isinstance(tree[2], CTorExpression))
-        self.assertEqual(tree[2]._parameters, 'int v', "Parameters does not match.")
+        self.assertEqual(tree[2].parameters, 'int v', "Parameters does not match.")
         self.assertEqual(tree[2].identifier, 'A', 'Ctor identifier does not match.')
 
     def test_CtorWithNewlinedParameters(self):
@@ -111,7 +111,7 @@ class Test_AstCtor(unittest.TestCase):
         self.assertEqual(len(tree), 2)
         self.assertEqual(tree[0], ClassExpression('MegaPrzydatnaKlasa'))
         self.assertEqual(tree[1].identifier, 'MegaPrzydatnaKlasa')
-        self.assertEqual(tree[1]._parameters, 'int*& val1, SomeOtherType const& val2')
+        self.assertEqual(tree[1].parameters, 'int*& val1, SomeOtherType const& val2')
         self.assertTrue(isinstance(tree[1], CTorExpression))
 
     def test_CtorNoCtor(self):
@@ -140,7 +140,7 @@ class Test_AstCtor(unittest.TestCase):
         self.assertEqual(len(tree), 2)
         self.assertEqual(tree[0], ClassExpression('Foo'))
         self.assertEqual(tree[1].identifier, 'Foo')
-        self.assertEqual(tree[1]._parameters, 'int v')
+        self.assertEqual(tree[1].parameters, 'int v')
         self.assertTrue(isinstance(tree[1], CTorExpression))
 
     def test_TwoCopyCtorsPrivateAndPublic(self):
@@ -157,7 +157,7 @@ class Test_AstCtor(unittest.TestCase):
         self.assertEqual(tree[0], ClassExpression('A'))
         self.assertTrue(isinstance(tree[1], CTorExpression))
         self.assertEqual(tree[1].identifier, 'A')
-        self.assertEqual(tree[1]._parameters, 'const A&')
+        self.assertEqual(tree[1].parameters, 'const A&')
 
     def test_TwoCopyCtorsPrivateAndImplementedPublic(self):
         tree = AbstractTreeBuilder(source_code="""

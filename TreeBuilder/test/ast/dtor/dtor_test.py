@@ -1,7 +1,7 @@
 import unittest
-from atb import AbstractTreeBuilder
-from expressions import ClassExpression
-from expressions import  DTorExpression
+from TreeBuilder.atb import AbstractTreeBuilder
+from TreeBuilder.expressions import ClassExpression
+from TreeBuilder.expressions import DTorExpression
 
 
 class Test_AstDtor(unittest.TestCase):

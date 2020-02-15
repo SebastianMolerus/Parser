@@ -7,7 +7,7 @@ class Expression(object, Node):
         self.identifier = identifier
         Node.__init__(self)
 
-    def _print_all(self, indent = 0):
+    def print_all(self, indent = 0):
 
         z = chr(192)        # \
         m = chr(196) * 3    # ---
@@ -19,12 +19,12 @@ class Expression(object, Node):
             s += indent * ' '
             s += z
             s += m
-            s += c._print_all(indent + size_of_special_chars)
+            s += c.print_all(indent + size_of_special_chars)
         
         return s
 
     def __str__(self):
-        return self._print_all()
+        return self.print_all()
 
     def __eq__(self, expr):
         return self.identifier == expr.identifier and isinstance(expr, type(self))
@@ -59,20 +59,20 @@ class NamespaceExpression(Expression):
 
 
 class MethodExpression(Expression):
-    def __init__(self, identifier, parameters, returns, constness):
+    def __init__(self, identifier, parameters, returns, is_const):
         Expression.__init__(self, identifier)
-        self._parameters = parameters
-        self._returns = returns
-        self._constness = constness
+        self.parameters = parameters
+        self.returns = returns
+        self.is_const = is_const
 
 
 class CTorExpression(Expression):
     def __init__(self, identifier, parameters):
         Expression.__init__(self, identifier)
-        self._parameters = parameters
+        self.parameters = parameters
 
     def __eq__(self, expr):
-        return Expression.__eq__(self, expr) and self._parameters == expr._parameters
+        return Expression.__eq__(self, expr) and self.parameters == expr.parameters
 
 
 class DTorExpression(Expression):

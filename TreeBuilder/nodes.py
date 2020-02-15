@@ -60,7 +60,7 @@ class NodeIter:
 
 
     def __next__(self):
-        self._currIndex+=1
+        self._currIndex += 1
         if self._currIndex == len(self._node_list):
             raise StopIteration
         return self._node_list[self._currIndex]

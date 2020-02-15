@@ -11,7 +11,7 @@ class StateParser:
         self._current_state = None
 
         for s in self._states:
-            if s.is_successful_compared(self._token_stream.current_token):
+            if s.is_successful_compared(self._token_stream.current_token.kind):
                 self._current_state = s
                 break
 

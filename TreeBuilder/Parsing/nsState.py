@@ -1,44 +1,44 @@
-from statebase import State
+from stateBase import State
 from TreeBuilder.tok import TokenType
 from TreeBuilder.expressions import NamespaceExpression
-from statebuilder import StateParserBuilder
+from stateBuilder import StateParserBuilder
 
 
 class NamespaceState(State):
-    def __init__(self):
-        State.__init__(self, TokenType.namespace_)
+    def __init__(self, token_stream, context=None):
+        State.__init__(self, TokenType.namespace_, token_stream, context)
 
-    def handle(self, token_stream, context):
+    def handle(self):
         # we have "namespace" already
         # go next
-        token_stream.next()
+        self._forward()
 
         # consume identifier
-        if token_stream.current_token.kind != TokenType.identifier_:
+        if self._current_kind() != TokenType.identifier_:
             raise Exception("Identifier expected after namespace keyword")
 
         # we have identifier
-        parsed_namespace = NamespaceExpression(token_stream.current_token.content)
+        parsed_namespace = NamespaceExpression(self._current_content())
 
-        token_stream.next()
+        self._forward()
 
-        if token_stream.current_token.kind != TokenType.opening_bracket_:
+        if self._current_kind() != TokenType.opening_bracket_:
             raise Exception("No opening brackets after namespace identifier")
 
         # currentToken == token.opening_brackets
 
-        while token_stream.next():
+        state_parser = StateParserBuilder(self._token_stream, parsed_namespace). \
+            add_class_parsing(). \
+            add_namespace_parsing(). \
+            get_product()
+
+        while self._forward():
 
             # we're done
-            if token_stream.current_token.kind == TokenType.closing_bracket_:
+            if self._current_kind() == TokenType.closing_bracket_:
                 break
 
-            state_parser = StateParserBuilder(token_stream).\
-                add_class_parsing().\
-                add_namespace_parsing().\
-                get_product()
-
-            expr = state_parser.process(parsed_namespace)
+            expr = state_parser.process()
             if expr is None:
                 continue
             parsed_namespace.attach(expr)

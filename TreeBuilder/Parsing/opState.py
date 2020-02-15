@@ -1,42 +1,40 @@
-from statebase import State
+from stateBase import State
 from TreeBuilder.tok import TokenType
 from TreeBuilder.expressions import OperatorExpression
 
 
 class OperatorState(State):
-    def __init__(self):
-        State.__init__(self, TokenType.operator_)
+    def __init__(self, token_stream, context):
+        State.__init__(self, TokenType.operator_, token_stream, context)
 
-    def handle(self, token_stream, context):
+    def is_valid(self,):
+        return State.is_valid(self) and \
+               self._context.get_current_scope() == TokenType.public_
+
+    def handle(self):
         '''Used for parsing class operator.'''
-
-        if not self._is_proper_class_context(context):
-            return None
-
-        if not self._is_public_scope(context):
-            return None
-
         operator_id_str = ''
-        token_stream.next()
+        self._forward()
 
-        while token_stream.current_token.kind != TokenType.params_begin_:
-            operator_id_str += token_stream.current_token.content
-            token_stream.next()
+        while self._current_kind() != TokenType.params_begin_:
+            operator_id_str += self._token_stream.current_token.content
+            self._forward()
 
-        operator_return_tokens = self._get_method_return_type(token_stream)
+        operator_return_tokens = self._get_method_return_type()
         del operator_return_tokens[-1]
-        str_returns = self._convert_param_tokens_to_string(operator_return_tokens)
+        str_returns = self.convert_param_tokens_to_string(operator_return_tokens)
 
-        operator_params_tokens = State._get_all_valid_next_tokens(token_stream=token_stream, not_valid_tokens=[TokenType.params_end_])
-        str_params = self._convert_param_tokens_to_string(operator_params_tokens)
+        operator_params_tokens = self.get_all_valid_next_tokens(not_valid_tokens=[TokenType.params_end_])
+        str_params = self.convert_param_tokens_to_string(operator_params_tokens)
 
-        while token_stream.current_token.kind != TokenType.params_end_:
-            token_stream.next()
+        while self._current_kind() != TokenType.params_end_:
+            self._forward()
 
-        token_stream.next()
-        if token_stream.current_token.kind == TokenType.semicolon_:
+        self._forward()
+        if self._current_kind() == TokenType.semicolon_:
             return OperatorExpression(operator_id_str, str_params, str_returns)
         else:
-            while token_stream.current_token.kind != TokenType.closing_bracket_:
-                token_stream.next()
+            while self._current_kind() != TokenType.closing_bracket_:
+                self._forward()
+
         return None

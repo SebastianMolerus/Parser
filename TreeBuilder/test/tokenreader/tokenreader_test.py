@@ -3,11 +3,10 @@ from parameterized import parameterized
 
 from mock import Mock
 
-from tokrdr import TokenReader
-from tok import TokenType
-from tok import Token
-
-from pproc import PreProcess
+from TreeBuilder.tokrdr import TokenReader
+from TreeBuilder.tok import TokenType
+from TreeBuilder.tok import Token
+from TreeBuilder.pproc import PreProcess
 
 
 class Test_TokenReader(unittest.TestCase):

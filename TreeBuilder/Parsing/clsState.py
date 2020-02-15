@@ -1,60 +1,59 @@
-from statebase import State
+from stateBase import State
 from TreeBuilder.tok import TokenType
-from statebuilder import StateParserBuilder
+from stateBuilder import StateParserBuilder
 from TreeBuilder.expressions import ClassExpression
 
 
 class ClassState(State):
-    def __init__(self):
-        State.__init__(self, TokenType.class_)
+    def __init__(self, token_stream, context):
+        State.__init__(self, TokenType.class_, token_stream, context)
 
-    def handle(self, token_stream, context):
+    def handle(self):
         # we have class already
-        # go next
-        token_stream.next()
+        self._forward()
 
         # consume identifier
-        if token_stream.current_token.kind != TokenType.identifier_:
+        if self._current_kind() != TokenType.identifier_:
             raise Exception("Identifier expected after class keyword")
 
         # we have identifier
-        parsed_class = ClassExpression(token_stream.current_token.content)
+        parsed_class = ClassExpression(self._current_content())
 
-        token_stream.next()
+        self._forward()
 
         # we have something...
 
         # ...maybe forwarded class
-        if token_stream.current_token.kind == TokenType.semicolon_:
+        if self._current_kind() == TokenType.semicolon_:
             return None
 
         # ...move after opening bracket
-        while token_stream.current_token.kind != TokenType.opening_bracket_:
-            token_stream.next()
+        while self._current_kind() != TokenType.opening_bracket_:
+            self._forward()
 
         # currentToken == token.opening_brackets
 
-        while token_stream.next():
+        state_parser = StateParserBuilder(self._token_stream, parsed_class). \
+            add_class_parsing(). \
+            add_dtor_parsing(). \
+            add_operator_parsing(). \
+            add_params_parsing(). \
+            get_product()
+
+        while self._forward():
 
             # friend inside class
-            if token_stream.current_token.kind == TokenType.friend_:
-                parsed_class._friend_inside_spotted()
+            if self._current_kind() == TokenType.friend_:
+                parsed_class.set_friend_inside()
 
             # take care of public, prot, private
-            parsed_class._set_scope_from_scope_token(token_stream.current_token.kind)
+            parsed_class.set_scope(self._current_kind())
 
             # we're done
-            if token_stream.current_token.kind == TokenType.closing_bracket_:
+            if self._current_kind() == TokenType.closing_bracket_:
                 break
 
-            state_parser = StateParserBuilder(token_stream).\
-                add_class_parsing().\
-                add_dtor_parsing().\
-                add_operator_parsing().\
-                add_params_parsing().\
-                get_product()
-
-            expr = state_parser.process(parsed_class)
+            expr = state_parser.process()
             if expr is None:
                 continue
             parsed_class.attach(expr)

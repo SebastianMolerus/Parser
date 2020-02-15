@@ -289,13 +289,19 @@ class Test_AstMethod(unittest.TestCase):
         };
         """).build_ast()
 
-        self.assertEqual(len(tree), 2)
+        self.assertEqual(len(tree), 3)
         self.assertEqual(tree[0], ClassExpression("Foo"))
 
         self.assertTrue(isinstance(tree[1], MethodExpression))
         self.assertEqual(tree[1].identifier, 'bar1')
         self.assertEqual(tree[1].parameters, '')
         self.assertEqual(tree[1].returns, 'void')
+
+        self.assertTrue(isinstance(tree[2], MethodExpression))
+        self.assertEqual(tree[2].identifier, 'bar3')
+        self.assertTrue(tree[2].is_const)
+        self.assertEqual(tree[2].parameters, '')
+        self.assertEqual(tree[2].returns, 'void')
 
     def test_ClassWithoutFriend(self):
         tree = AbstractTreeBuilder(source_code="""

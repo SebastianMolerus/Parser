@@ -1,10 +1,8 @@
 import unittest
+from TreeBuilder.nodes import Node
 
-from nodes import *
 
 class Test_Node(unittest.TestCase):
-
-
     def test_Root(self):
         grandFather = Node()
         father = Node()
@@ -17,7 +15,6 @@ class Test_Node(unittest.TestCase):
         self.assertEqual(father.get_root(), grandFather)
         self.assertEqual(grandFather.get_root(), grandFather)
 
-    
     def test_Father(self):
         grandFather = Node()
         father = Node()

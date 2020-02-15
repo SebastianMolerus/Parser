@@ -1,31 +1,28 @@
-from statebase import State
+from stateBase import State
 from TreeBuilder.tok import TokenType
 from TreeBuilder.expressions import DTorExpression
 
 
 class DtorState(State):
-    def __init__(self):
-        State.__init__(self, TokenType.tilde_)
+    def __init__(self, token_stream, context):
+        State.__init__(self, TokenType.tilde_, token_stream, context)
 
-    def handle(self, token_stream, context):
-        '''Used for parsing class dtor.'''
-        if not self._is_proper_class_context(context):
-            return None
+    def is_valid(self):
+        return State.is_valid(self) and \
+               self._context.get_current_scope() == TokenType.public_
 
-        if not self._is_public_scope(context):
-            return None
+    def handle(self):
+        d_tor_name = self._context.identifier
 
-        d_tor_name = context.identifier
+        while self._current_kind() != TokenType.params_end_:
+            self._forward()
 
-        while token_stream.current_token.kind != TokenType.params_end_:
-            token_stream.next()
+        self._forward()
 
-        token_stream.next()
-
-        if token_stream.current_token.kind == TokenType.semicolon_:
+        if self._current_kind() == TokenType.semicolon_:
             return DTorExpression(d_tor_name)
         else:
-            while token_stream.current_token.kind != TokenType.closing_bracket_:
-                token_stream.next()
+            while self._current_kind() != TokenType.closing_bracket_:
+                self._forward()
 
         return None

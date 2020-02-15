@@ -36,14 +36,13 @@ class ClassExpression(Expression):
         self._currentScope = TokenType.private_
         self._isFriendInside = False
 
-    def _set_scope_from_scope_token(self, scope_token):
-        '''Sets current scope only if given token is about scope.'''
+    def set_scope(self, scope_token):
         if scope_token == TokenType.public_ or \
            scope_token == TokenType.private_ or \
            scope_token == TokenType.protected_:
             self._currentScope = scope_token
 
-    def _friend_inside_spotted(self):
+    def set_friend_inside(self):
         self._isFriendInside = True
 
     def is_friend_inside(self):

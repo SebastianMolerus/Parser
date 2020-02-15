@@ -1,5 +1,5 @@
 import unittest
-from pproc import PreProcess
+from TreeBuilder.pproc import PreProcess
 
 
 class Test_Preproc(unittest.TestCase):

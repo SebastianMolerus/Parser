@@ -1,7 +1,7 @@
 from tokrdr import TokenReader
 from tokenstream import TokenStream
 from expressions import Expression
-from Parsing.statebuilder import StateParserBuilder
+from Parsing.stateBuilder import StateParserBuilder
 
 
 class AbstractTreeBuilder:

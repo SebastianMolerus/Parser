@@ -1,5 +1,4 @@
 import unittest
-from expressions import *
 from atb import *
 
 class Test_AstOperator(unittest.TestCase):
@@ -16,7 +15,7 @@ class Test_AstOperator(unittest.TestCase):
         self.assertEqual(len(tree), 2)
         self.assertEqual(tree[0], ClassExpression('A'))
         self.assertTrue(isinstance(tree[1], OperatorExpression))
-        self.assertEqual(tree[1]._identifier, '=')
+        self.assertEqual(tree[1].identifier, '=')
         self.assertEqual(tree[1]._parameters, 'const A& x')
         self.assertEqual(tree[1]._returns, 'A&')
 
@@ -61,11 +60,11 @@ class Test_AstOperator(unittest.TestCase):
         self.assertEqual(len(tree), 3)
         self.assertEqual(tree[0], ClassExpression('A'))
         self.assertTrue(isinstance(tree[1], OperatorExpression))
-        self.assertEqual(tree[1]._identifier, '=')
+        self.assertEqual(tree[1].identifier, '=')
         self.assertEqual(tree[1]._parameters, 'const A& x')
         self.assertEqual(tree[1]._returns, 'A&')
         self.assertTrue(isinstance(tree[2], OperatorExpression))
-        self.assertEqual(tree[2]._identifier, '+')
+        self.assertEqual(tree[2].identifier, '+')
         self.assertEqual(tree[2]._parameters, 'const A& bagno')
         self.assertEqual(tree[2]._returns, 'A&')
     
@@ -79,7 +78,7 @@ class Test_AstOperator(unittest.TestCase):
         self.assertEqual(len(tree), 2)
         self.assertEqual(tree[0], ClassExpression('A'))
         self.assertTrue(isinstance(tree[1], OperatorExpression))
-        self.assertEqual(tree[1]._identifier, '=')
+        self.assertEqual(tree[1].identifier, '=')
         self.assertEqual(tree[1]._parameters, 'const A::B::C::D::E::F::G::H::I::J::K::L::M::N::O::P& x')
         self.assertEqual(tree[1]._returns, 'A::B::C::D::E::F::G::H::I::J::K::L::M::N::O::P&')
 
@@ -110,7 +109,7 @@ class Test_AstOperator(unittest.TestCase):
         self.assertEqual(len(tree), 2)
         self.assertEqual(tree[0], ClassExpression('A'))
         self.assertTrue(isinstance(tree[1], OperatorExpression))
-        self.assertEqual(tree[1]._identifier, '+')
+        self.assertEqual(tree[1].identifier, '+')
         self.assertEqual(tree[1]._parameters, 'const A& bagno')
         self.assertEqual(tree[1]._returns, 'A&')
 

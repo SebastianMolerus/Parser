@@ -1,5 +1,4 @@
 import unittest
-from expressions import *
 from atb import *
 
 
@@ -16,7 +15,7 @@ class Test_AstMethod(unittest.TestCase):
 
         self.assertEqual(len(tree), 2)
         self.assertTrue(isinstance(tree[1], MethodExpression))
-        self.assertEqual(tree[1]._identifier, 'Bar')
+        self.assertEqual(tree[1].identifier, 'Bar')
         self.assertEqual(tree[1]._parameters, 'int* a')
         self.assertEqual(tree[1]._returns, 'uint_32 const*')
         self.assertFalse(tree[1]._constness)
@@ -32,7 +31,7 @@ class Test_AstMethod(unittest.TestCase):
 
         self.assertEqual(len(tree), 2)
         self.assertTrue(isinstance(tree[1], MethodExpression))
-        self.assertEqual(tree[1]._identifier, 'Bar')
+        self.assertEqual(tree[1].identifier, 'Bar')
         self.assertEqual(tree[1]._parameters, 'int* a')
         self.assertEqual(tree[1]._returns, 'A::B const*') 
         self.assertFalse(tree[1]._constness)
@@ -48,7 +47,7 @@ class Test_AstMethod(unittest.TestCase):
 
         self.assertEqual(len(tree), 2)
         self.assertTrue(isinstance(tree[1], MethodExpression))
-        self.assertEqual(tree[1]._identifier, 'Bar')
+        self.assertEqual(tree[1].identifier, 'Bar')
         self.assertEqual(tree[1]._parameters, 'int* a')
         self.assertEqual(tree[1]._returns, 'G const*')
         self.assertFalse(tree[1]._constness)
@@ -64,7 +63,7 @@ class Test_AstMethod(unittest.TestCase):
 
         self.assertEqual(len(tree), 2)
         self.assertTrue(isinstance(tree[1], MethodExpression))
-        self.assertEqual(tree[1]._identifier, 'Bar')
+        self.assertEqual(tree[1].identifier, 'Bar')
         self.assertEqual(tree[1]._parameters, 'int* a')
         self.assertEqual(tree[1]._returns, 'G::B const*')
         self.assertFalse(tree[1]._constness)
@@ -80,7 +79,7 @@ class Test_AstMethod(unittest.TestCase):
         """).build_ast()  
 
         self.assertTrue(isinstance(tree[2], MethodExpression))
-        self.assertEqual(tree[2]._identifier, 'Bar')
+        self.assertEqual(tree[2].identifier, 'Bar')
         self.assertEqual(tree[2]._parameters, 'int* a')
         self.assertEqual(tree[2]._returns, 'int')
         self.assertFalse(tree[2]._constness)
@@ -96,7 +95,7 @@ class Test_AstMethod(unittest.TestCase):
         """).build_ast()  
 
         self.assertTrue(isinstance(tree[1], MethodExpression))
-        self.assertEqual(tree[1]._identifier, 'Bar')
+        self.assertEqual(tree[1].identifier, 'Bar')
         self.assertEqual(tree[1]._parameters, 'int* a')
         self.assertEqual(tree[1]._returns, 'int')
         self.assertFalse(tree[1]._constness)
@@ -112,7 +111,7 @@ class Test_AstMethod(unittest.TestCase):
         """).build_ast()  
 
         self.assertTrue(isinstance(tree[1], MethodExpression))
-        self.assertEqual(tree[1]._identifier, 'Bar')
+        self.assertEqual(tree[1].identifier, 'Bar')
         self.assertEqual(tree[1]._parameters, 'int* a')
         self.assertEqual(tree[1]._returns, 'int const* const')
         self.assertFalse(tree[1]._constness)
@@ -128,7 +127,7 @@ class Test_AstMethod(unittest.TestCase):
         """).build_ast()  
 
         self.assertTrue(isinstance(tree[1], MethodExpression))
-        self.assertEqual(tree[1]._identifier, 'Bar')
+        self.assertEqual(tree[1].identifier, 'Bar')
         self.assertEqual(tree[1]._parameters, 'int* a')
         self.assertEqual(tree[1]._returns, 'A::B const* const')
         self.assertFalse(tree[1]._constness)
@@ -144,7 +143,7 @@ class Test_AstMethod(unittest.TestCase):
         """).build_ast()  
 
         self.assertTrue(isinstance(tree[1], MethodExpression))
-        self.assertEqual(tree[1]._identifier, 'Bar')
+        self.assertEqual(tree[1].identifier, 'Bar')
         self.assertEqual(tree[1]._parameters, 'int* a')
         self.assertEqual(tree[1]._returns, 'A::B const& const')
         self.assertFalse(tree[1]._constness)
@@ -160,7 +159,7 @@ class Test_AstMethod(unittest.TestCase):
 
         self.assertEqual(len(tree), 2)
         self.assertTrue(isinstance(tree[1], MethodExpression))
-        self.assertEqual(tree[1]._identifier, 'Bar')
+        self.assertEqual(tree[1].identifier, 'Bar')
         self.assertEqual(tree[1]._parameters, '')
         self.assertEqual(tree[1]._returns, 'void')
         self.assertFalse(tree[1]._constness)
@@ -176,7 +175,7 @@ class Test_AstMethod(unittest.TestCase):
 
         self.assertEqual(len(tree), 2)
         self.assertTrue(isinstance(tree[1], MethodExpression))
-        self.assertEqual(tree[1]._identifier, 'Bar')
+        self.assertEqual(tree[1].identifier, 'Bar')
         self.assertEqual(tree[1]._parameters, 'int* a')
         self.assertEqual(tree[1]._returns, 'void')
         self.assertFalse(tree[1]._constness)
@@ -192,7 +191,7 @@ class Test_AstMethod(unittest.TestCase):
 
         self.assertEqual(len(tree), 2)
         self.assertTrue(isinstance(tree[1], MethodExpression))
-        self.assertEqual(tree[1]._identifier, 'Bar')
+        self.assertEqual(tree[1].identifier, 'Bar')
         self.assertEqual(tree[1]._parameters, 'int* a, A::B const* value2')
         self.assertEqual(tree[1]._returns, 'void')
         self.assertFalse(tree[1]._constness)
@@ -208,7 +207,7 @@ class Test_AstMethod(unittest.TestCase):
 
         self.assertEqual(len(tree), 2)
         self.assertTrue(isinstance(tree[1], MethodExpression))
-        self.assertEqual(tree[1]._identifier, 'Bar')
+        self.assertEqual(tree[1].identifier, 'Bar')
         self.assertEqual(tree[1]._parameters, 'int* a, A::B const* value2')
         self.assertEqual(tree[1]._returns, 'void')
         self.assertFalse(tree[1]._constness)
@@ -224,7 +223,7 @@ class Test_AstMethod(unittest.TestCase):
 
         self.assertEqual(len(tree), 2)
         self.assertTrue(isinstance(tree[1], MethodExpression))
-        self.assertEqual(tree[1]._identifier, 'Bar')
+        self.assertEqual(tree[1].identifier, 'Bar')
         self.assertEqual(tree[1]._parameters, 'int* a')
         self.assertEqual(tree[1]._returns, 'void')
         self.assertFalse(tree[1]._constness)
@@ -286,7 +285,7 @@ class Test_AstMethod(unittest.TestCase):
         self.assertEqual(len(tree), 2)
         self.assertEqual(tree[0], ClassExpression("Foo"))
         self.assertTrue(isinstance(tree[1], MethodExpression))
-        self.assertEqual(tree[1]._identifier, 'bar3')
+        self.assertEqual(tree[1].identifier, 'bar3')
         self.assertEqual(tree[1]._parameters, '')
         self.assertEqual(tree[1]._returns, 'void')
 
@@ -311,13 +310,13 @@ class Test_AstMethod(unittest.TestCase):
         self.assertEqual(tree[0], ClassExpression("Foo"))
 
         self.assertTrue(isinstance(tree[1], MethodExpression))
-        self.assertEqual(tree[1]._identifier, 'bar1')
+        self.assertEqual(tree[1].identifier, 'bar1')
         self.assertEqual(tree[1]._parameters, '')
         self.assertEqual(tree[1]._returns, 'void')
 
         # self.assertTrue(isinstance(tree[2], MethodExpression))
         # self.assertTrue(tree[2]._constness)
-        # self.assertEqual(tree[2]._identifier, 'bar3')
+        # self.assertEqual(tree[2].identifier, 'bar3')
         # self.assertEqual(tree[2]._parameters, '')
         # self.assertEqual(tree[2]._returns, 'void')
  

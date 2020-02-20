@@ -13,10 +13,9 @@ class StateParser:
 
         for s in self._states:
             if s.is_valid(self._token_stream, self._expression_context):
+                if self._current_state is not None:
+                    raise Exception("Two states valid for parsing which is invalid situation.")
                 self._current_state = s
-                break
 
         if self._current_state is not None:
             return self._current_state.handle(self._token_stream, self._expression_context)
-
-        return None

@@ -8,15 +8,19 @@ class MethodState(State):
         State.__init__(self, TokenType.params_begin_)
 
     def is_valid(self, token_stream, expression_context):
-        return State.is_valid(self, token_stream, expression_context) and \
-               (expression_context.get_current_scope() == TokenType.public_ or
-                expression_context.is_friend_inside())
+        return State.is_valid(self, token_stream, expression_context)\
+               and \
+               (expression_context.get_current_scope() == TokenType.public_ \
+                or
+                expression_context.is_friend_inside()) \
+               and \
+               token_stream.get_token_content_from_left() != expression_context.identifier
 
     def handle(self, token_stream, expression_context):
         # At params begin
         method_name = token_stream.get_token_content_from_left()
 
-        method_return_part_as_tokens = token_stream.get_return_part()
+        method_return_part_as_tokens = token_stream.getreturn_part()
         method_return_part_as_string = self.convert_param_tokens_to_string(method_return_part_as_tokens)
 
         method_parameters_as_tokens = token_stream.get_all_valid_forward_tokens(not_valid_tokens=

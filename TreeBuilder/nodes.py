@@ -22,7 +22,7 @@ class Node:
         return root
 
     def _get_flat_list(self, l):
-        '''Returns one flat list contains all elements to easy iterate.'''
+        '''return_part one flat list contains all elements to easy iterate.'''
         f = []
 
         for item in l:

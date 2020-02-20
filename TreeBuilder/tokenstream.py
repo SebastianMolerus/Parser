@@ -71,7 +71,7 @@ class TokenStream:
 
         return result
 
-    def get_return_part(self):
+    def getreturn_part(self):
         assert (self.current_kind() == TokenType.params_begin_)
 
         stop_parsing_tokens = [TokenType.opening_bracket_,

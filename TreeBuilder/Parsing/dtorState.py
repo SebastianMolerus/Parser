@@ -8,7 +8,8 @@ class DtorState(State):
         State.__init__(self, TokenType.tilde_)
 
     def is_valid(self, token_stream, expression_context):
-        return State.is_valid(self, token_stream, expression_context) and \
+        return State.is_valid(self, token_stream, expression_context)\
+               and \
                expression_context.get_current_scope() == TokenType.public_
 
     def handle(self, token_stream, expression_context):

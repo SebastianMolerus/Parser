@@ -20,7 +20,7 @@ class AbstractTreeBuilder:
             add_class_parsing()\
             .get_product()
 
-        while self.tokenStream.next():
+        while self.tokenStream.forward():
             expr = state_parser.process()
             if expr is not None:
                 ast_tree.attach(expr)

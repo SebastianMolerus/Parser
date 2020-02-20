@@ -2,6 +2,7 @@ import unittest
 
 from TreeBuilder.Parsing.stateBase import State
 from TreeBuilder.Parsing.stateParser import StateParser
+from TreeBuilder.tokenstream import TokenStream
 from mock import Mock
 
 
@@ -11,7 +12,8 @@ class Test_StateParser(unittest.TestCase):
         state_mock = Mock(State)
         state_mock.is_valid = Mock(return_value=False)
         state_mock.handle = Mock()
-        s = StateParser()
+        token_stream_mock = Mock(TokenStream)
+        s = StateParser(token_stream_mock)
         s.add_state(state_mock)
 
         s.process()
@@ -23,7 +25,8 @@ class Test_StateParser(unittest.TestCase):
         state_mock = Mock(State)
         state_mock.is_valid = Mock(return_value=True)
         state_mock.handle = Mock()
-        s = StateParser()
+        token_stream_mock = Mock(TokenStream)
+        s = StateParser(token_stream_mock)
         s.add_state(state_mock)
 
         s.process()

@@ -101,16 +101,16 @@ class Test_AstCtor(unittest.TestCase):
 
     def test_CtorWithNewlinedParameters(self):
         tree = AbstractTreeBuilder(source_code="""
-        class MegaPrzydatnaKlasa{
+        class M{
             public:
-            MegaPrzydatnaKlasa(int*& val1,
+            M(int*& val1,
                                SomeOtherType const& val2);
             };
         """).build_ast()
 
         self.assertEqual(len(tree), 2)
-        self.assertEqual(tree[0], ClassExpression('MegaPrzydatnaKlasa'))
-        self.assertEqual(tree[1].identifier, 'MegaPrzydatnaKlasa')
+        self.assertEqual(tree[0], ClassExpression('M'))
+        self.assertEqual(tree[1].identifier, 'M')
         self.assertEqual(tree[1].parameters, 'int*& val1, SomeOtherType const& val2')
         self.assertTrue(isinstance(tree[1], CTorExpression))
 

@@ -4,25 +4,21 @@ from TreeBuilder.expressions import DTorExpression
 
 
 class DtorState(State):
-    def __init__(self, token_stream, context):
-        State.__init__(self, TokenType.tilde_, token_stream, context)
+    def __init__(self):
+        State.__init__(self, TokenType.tilde_)
 
-    def is_valid(self):
-        return State.is_valid(self) and \
-               self._context.get_current_scope() == TokenType.public_
+    def is_valid(self, token_stream, expression_context):
+        return State.is_valid(self, token_stream, expression_context) and \
+               expression_context.get_current_scope() == TokenType.public_
 
-    def handle(self):
-        d_tor_name = self._context.identifier
+    def handle(self, token_stream, expression_context):
+        destructor_identifier = expression_context.identifier
 
-        while self._current_kind() != TokenType.params_end_:
-            self._forward()
+        token_stream.move_forward_till_params_end_token()
 
-        self._forward()
+        token_stream.forward()
 
-        if self._current_kind() == TokenType.semicolon_:
-            return DTorExpression(d_tor_name)
+        if token_stream.current_kind() == TokenType.semicolon_:
+            return DTorExpression(destructor_identifier)
         else:
-            while self._current_kind() != TokenType.closing_bracket_:
-                self._forward()
-
-        return None
+            token_stream.move_forward_till_closing_bracket_token()

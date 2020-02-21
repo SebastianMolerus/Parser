@@ -14,6 +14,8 @@ class IncludeParser:
         return self._systemHeaders
 
     def parse_content(self, contentToParse):
+        self._systemHeaders = []
+        self._headers = []
         # matches = re.finditer(self._regexPattern, self._contentToParse, re.MULTILINE)
         result = re.findall(self._regexPattern, contentToParse)
         for match in result:

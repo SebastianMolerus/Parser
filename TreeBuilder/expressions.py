@@ -33,23 +33,23 @@ class Expression(object, Node):
 class ClassExpression(Expression):
     def __init__(self, identifier):
         Expression.__init__(self, identifier)
-        self._currentScope = TokenType.private_
-        self._isFriendInside = False
+        self._current_scope = TokenType.private_
+        self._is_friend_inside = False
 
     def set_scope(self, scope_token):
         if scope_token == TokenType.public_ or \
            scope_token == TokenType.private_ or \
            scope_token == TokenType.protected_:
-            self._currentScope = scope_token
+            self._current_scope = scope_token
 
     def set_friend_inside(self):
-        self._isFriendInside = True
+        self._is_friend_inside = True
 
     def is_friend_inside(self):
-        return self._isFriendInside
+        return self._is_friend_inside
 
     def get_current_scope(self):
-        return self._currentScope
+        return self._current_scope
 
 
 class NamespaceExpression(Expression):
@@ -58,10 +58,10 @@ class NamespaceExpression(Expression):
 
 
 class MethodExpression(Expression):
-    def __init__(self, identifier, parameters, returns, is_const):
+    def __init__(self, identifier, parameters, return_part, is_const):
         Expression.__init__(self, identifier)
         self.parameters = parameters
-        self.returns = returns
+        self.return_part = return_part
         self.is_const = is_const
 
 
@@ -80,7 +80,7 @@ class DTorExpression(Expression):
 
 
 class OperatorExpression(Expression):
-    def __init__(self, identifier, parameters, returns):
+    def __init__(self, identifier, parameters, return_part):
         Expression.__init__(self, identifier)
-        self._parameters = parameters
-        self._returns = returns
+        self.parameters = parameters
+        self.return_part = return_part

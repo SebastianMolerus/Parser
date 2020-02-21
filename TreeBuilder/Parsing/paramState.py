@@ -4,13 +4,13 @@ from stateBuilder import StateParserBuilder
 
 
 class ParamsState(State):
-    def __init__(self, token_stream, context):
-        State.__init__(self, TokenType.params_begin_, token_stream, context)
+    def __init__(self):
+        State.__init__(self, TokenType.params_begin_)
 
-    def handle(self):
-        state_parser = StateParserBuilder(self._token_stream, self._context).\
+    def handle(self, token_stream, expression_context, state_parser=None):
+        _state_parser = state_parser or StateParserBuilder(token_stream, expression_context). \
+            add_method_parsing(). \
             add_ctor_parsing().\
-            add_method_parsing().\
             get_product()
 
-        return state_parser.process()
+        return _state_parser.process()

@@ -5,40 +5,35 @@ from stateBuilder import StateParserBuilder
 
 
 class NamespaceState(State):
-    def __init__(self, token_stream, context=None):
-        State.__init__(self, TokenType.namespace_, token_stream, context)
+    def __init__(self):
+        State.__init__(self, TokenType.namespace_)
 
-    def handle(self):
-        # we have "namespace" already
-        # go next
-        self._forward()
+    def handle(self, token_stream, expression_context, state_parser=None):
+        # At namespace
+        token_stream.forward()
 
-        # consume identifier
-        if self._current_kind() != TokenType.identifier_:
-            raise Exception("Identifier expected after namespace keyword")
+        # At namespace identifier
+        parsed_namespace = NamespaceExpression(token_stream.current_content())
 
-        # we have identifier
-        parsed_namespace = NamespaceExpression(self._current_content())
+        # At opening bracket
+        token_stream.forward()
 
-        self._forward()
-
-        if self._current_kind() != TokenType.opening_bracket_:
-            raise Exception("No opening brackets after namespace identifier")
-
-        # currentToken == token.opening_brackets
-
-        state_parser = StateParserBuilder(self._token_stream, parsed_namespace). \
+        _state_parser = state_parser or StateParserBuilder(token_stream, parsed_namespace). \
             add_class_parsing(). \
             add_namespace_parsing(). \
             get_product()
 
-        while self._forward():
+        self._try_parse_children_for_parsed_namespace(_state_parser, parsed_namespace, token_stream)
 
-            # we're done
-            if self._current_kind() == TokenType.closing_bracket_:
+        return parsed_namespace
+
+    @staticmethod
+    def _try_parse_children_for_parsed_namespace(_state_parser, parsed_namespace, token_stream):
+        while token_stream.forward():
+            if token_stream.current_kind() == TokenType.closing_bracket_:
                 break
 
-            expr = state_parser.process()
+            expr = _state_parser.process()
             if expr is None:
                 continue
             parsed_namespace.attach(expr)

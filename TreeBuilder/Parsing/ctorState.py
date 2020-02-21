@@ -5,38 +5,36 @@ from TreeBuilder.expressions import ClassExpression
 
 
 class CtorState(State):
-    def __init__(self, token_stream, context):
-        State.__init__(self, TokenType.params_begin_, token_stream, context)
+    def __init__(self):
+        State.__init__(self, TokenType.params_begin_)
 
-    def is_valid(self):
-        return State.is_valid(self) and \
-               self._is_ctor() and \
-               self._context.get_current_scope() == TokenType.public_
+    def is_valid(self, token_stream, expression_context):
+        return State.is_valid(self, token_stream, expression_context)\
+               and \
+               self._is_ctor(token_stream, expression_context)\
+               and \
+               expression_context.get_current_scope() == TokenType.public_
 
-    def _is_ctor(self):
-        if not isinstance(self._context, ClassExpression):
+    @staticmethod
+    def _is_ctor(token_stream, expression_context):
+        if not isinstance(expression_context, ClassExpression):
             return False
-        if self.get_token_content_from_left() != self._context.identifier:
+        if token_stream.get_token_content_from_left() != expression_context.identifier:
             return False
         return True
 
-    def handle(self):
-        c_tor_name = self._context.identifier
+    def handle(self, token_stream, expression_context):
+        constructor_identifier = expression_context.identifier
 
-        # at Params_begin
-        ctor_params_tokens = self.get_all_valid_next_tokens(not_valid_tokens=[TokenType.params_end_])
+        constructorparameters_as_tokens = \
+            token_stream.get_all_valid_forward_tokens(not_valid_tokens=[TokenType.params_end_])
 
-        str_params = self.convert_param_tokens_to_string(ctor_params_tokens)
+        constructorparameters_as_string = self.convert_param_tokens_to_string(constructorparameters_as_tokens)
 
-        while self._current_kind() != TokenType.params_end_:
-            self._forward()
-        # at Params_end
+        token_stream.move_forward_till_params_end_token()
 
-        self._forward()
-        if self._current_kind() == TokenType.semicolon_:
-            return CTorExpression(c_tor_name, str_params)
+        token_stream.forward()
+        if token_stream.current_kind() == TokenType.semicolon_:
+            return CTorExpression(constructor_identifier, constructorparameters_as_string)
         else:
-            while self._current_kind() != TokenType.closing_bracket_:
-                self._forward()
-
-        return None
+            token_stream.move_forward_till_closing_bracket_token()

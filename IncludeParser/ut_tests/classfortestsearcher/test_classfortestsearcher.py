@@ -1,7 +1,9 @@
 import unittest
-from classfortestsearcher import ClassForTestSearcher
+from IncludeParser.classfortestsearcher import ClassForTestSearcher
+from SystemModules.RepoPath.repopath import RepoPath
 
-ROOT_DIR_FOR_TEST = 'test\Project_Bagno'
+
+ROOT_DIR_FOR_TEST = RepoPath.get_repository_path()
 
 
 class Test_ClassForTestSearcher(unittest.TestCase):
@@ -13,5 +15,5 @@ class Test_ClassForTestSearcher(unittest.TestCase):
         self.assertEqual(len(classHeaderFoundPath), 1)
         self.assertEqual(len(classSourceFoundPath), 1)
 
-        self.assertEqual(classHeaderFoundPath[0], "test\\Project_Bagno\\Lugiks\\Engine\\Modules\\ModuleTest\\ModuleTest.hpp")
-        self.assertEqual(classSourceFoundPath[0], "test\\Project_Bagno\\Lugiks\\Engine\\Modules\\ModuleTest\\ModuleTest.cpp")     
+        self.assertEqual(classHeaderFoundPath[0], ROOT_DIR_FOR_TEST + "\\Lugiks\\Engine\\Modules\\ModuleTest\\ModuleTest.hpp")
+        self.assertEqual(classSourceFoundPath[0], ROOT_DIR_FOR_TEST + "\\Lugiks\\Engine\\Modules\\ModuleTest\\ModuleTest.cpp")     

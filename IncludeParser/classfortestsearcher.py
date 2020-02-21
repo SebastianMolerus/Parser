@@ -1,5 +1,5 @@
 from filesearcher import FileSearcher
-
+from SystemModules.RepoPath.repopath import RepoPath
 
 class ClassForTestSearcher:
     def __init__(self, class_name_str):
@@ -19,12 +19,12 @@ class ClassForTestSearcher:
             pass
 
     def _determine_header_file_localization(self):
-        file_searcher_obj = FileSearcher("test\Project_Bagno")
+        file_searcher_obj = FileSearcher(RepoPath.get_repository_path())
         file_searcher_obj.find_file_path(self._class_header_file_to_search)
         self._class_header_found = file_searcher_obj.get_found_file_list()
 
     def _determine_source_file_localization(self):
-        file_searcher_obj = FileSearcher("test\Project_Bagno")
+        file_searcher_obj = FileSearcher(RepoPath.get_repository_path())
         file_searcher_obj.find_file_path(self._class_source_file_to_search)
         self._class_source_found = file_searcher_obj.get_found_file_list()
 

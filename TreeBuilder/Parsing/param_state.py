@@ -7,10 +7,10 @@ class ParamsState(State):
     def __init__(self):
         State.__init__(self, TokenType.params_begin_)
 
-    def handle(self, token_stream, expression_context, state_parser=None):
-        _state_parser = state_parser or StateParserBuilder(token_stream, expression_context). \
+    def handle(self, token_stream, expression_context):
+        state_parser = StateParserBuilder(token_stream). \
             add_method_parsing(). \
             add_ctor_parsing().\
             get_product()
 
-        return _state_parser.process()
+        return state_parser.process(expression_context)

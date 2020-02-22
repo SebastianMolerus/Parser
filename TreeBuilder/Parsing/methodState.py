@@ -20,14 +20,11 @@ class MethodState(State):
         # At params begin
         method_name = token_stream.get_token_content_from_left()
 
-        method_return_part_as_tokens = token_stream.getreturn_part()
-        method_return_part_as_string = self.convert_param_tokens_to_string(method_return_part_as_tokens)
+        method_return_part_as_string = self._get_return_part_as_str(token_stream)
 
-        method_parameters_as_tokens = token_stream.get_all_valid_forward_tokens(not_valid_tokens=
-                                                                                [TokenType.params_end_])
-        method_parameters_as_string = self.convert_param_tokens_to_string(method_parameters_as_tokens)
+        method_parameters_as_string = self._get_method_parameters_as_str(token_stream)
 
-        token_stream.move_forward_till_params_end_token()
+        token_stream.move_forward_to_token_type(TokenType.params_end_)
 
         after_method_parameters_tokens = \
             token_stream.get_all_valid_forward_tokens(not_valid_tokens=
@@ -37,6 +34,7 @@ class MethodState(State):
         if Token(TokenType.const_) in after_method_parameters_tokens:
             is_method_const = True
 
+        # Pure virtual
         if Token(TokenType.equal_) in after_method_parameters_tokens:
             return None
 
@@ -48,6 +46,17 @@ class MethodState(State):
                                         is_method_const)
 
             elif token_stream.current_kind() == TokenType.opening_bracket_:
-                token_stream.move_forward_till_closing_bracket_token()
+                token_stream.move_forward_to_token_type(TokenType.closing_bracket_)
                 break
+
+    def _get_method_parameters_as_str(self, token_stream):
+        method_parameters_as_tokens = token_stream.get_all_valid_forward_tokens(not_valid_tokens=
+                                                                                [TokenType.params_end_])
+        method_parameters_as_string = self.convert_param_tokens_to_string(method_parameters_as_tokens)
+        return method_parameters_as_string
+
+    def _get_return_part_as_str(self, token_stream):
+        method_return_part_as_tokens = token_stream.get_return_part()
+        method_return_part_as_string = self.convert_param_tokens_to_string(method_return_part_as_tokens)
+        return method_return_part_as_string
 

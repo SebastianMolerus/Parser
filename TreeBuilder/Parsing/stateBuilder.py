@@ -2,12 +2,11 @@ from stateParser import StateParser
 
 
 class StateParserBuilder:
-    def __init__(self, token_stream, context=None):
-        self._sp = StateParser(token_stream, context)
-        self._context = context
+    def __init__(self, token_stream):
+        self._sp = StateParser(token_stream)
 
     def add_class_parsing(self):
-        from clsState import ClassState
+        from TreeBuilder.Parsing.class_parsing.class_state import ClassState
         self._sp.add_state(ClassState())
         return self
 
@@ -17,7 +16,7 @@ class StateParserBuilder:
         return self
 
     def add_params_parsing(self):
-        from paramState import ParamsState
+        from param_state import ParamsState
         self._sp.add_state(ParamsState())
         return self
 

@@ -1,14 +1,13 @@
 class Node:
-
     def __init__(self, father=None):
         self._father = father
-        self._children = []
-        self._flat_list = []
+        self.children = []
+        self.flat_list = []
 
     def attach(self, node):
         node._father = self
-        self._children.append(node)
-        self._flat_list = self._get_flat_list(self._children)
+        self.children.append(node)
+        self.flat_list = self._get_flat_list(self.children)
 
     def get_father(self):
         return self._father
@@ -27,18 +26,18 @@ class Node:
 
         for item in l:
             f.append(item)
-            f.extend(self._get_flat_list(item._children))
+            f.extend(self._get_flat_list(item.children))
 
         return f
 
     def __iter__(self):
-        return NodeIter(self._flat_list)
+        return NodeIter(self.flat_list)
 
     def __len__(self):
-        return len(self._flat_list)
+        return len(self.flat_list)
 
     def __getitem__(self, key):
-        return self._flat_list[key]
+        return self.flat_list[key]
 
 
 class NodeIter:

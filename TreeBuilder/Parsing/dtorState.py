@@ -15,11 +15,11 @@ class DtorState(State):
     def handle(self, token_stream, expression_context):
         destructor_identifier = expression_context.identifier
 
-        token_stream.move_forward_till_params_end_token()
+        token_stream.move_forward_to_token_type(TokenType.params_end_)
 
         token_stream.forward()
 
         if token_stream.current_kind() == TokenType.semicolon_:
             return DTorExpression(destructor_identifier)
         else:
-            token_stream.move_forward_till_closing_bracket_token()
+            token_stream.move_forward_to_token_type(TokenType.closing_bracket_)

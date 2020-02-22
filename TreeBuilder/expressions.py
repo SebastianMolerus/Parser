@@ -14,7 +14,7 @@ class Expression(object, Node):
         size_of_special_chars = len(z) + len(m)
 
         s = (indent - (indent * size_of_special_chars)) * ' ' + str(type(self)) + self.identifier
-        for c in self._children:
+        for c in self.children:
             s += '\n'
             s += indent * ' '
             s += z

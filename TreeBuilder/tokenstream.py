@@ -71,7 +71,7 @@ class TokenStream:
 
         return result
 
-    def getreturn_part(self):
+    def get_return_part(self):
         assert (self.current_kind() == TokenType.params_begin_)
 
         stop_parsing_tokens = [TokenType.opening_bracket_,
@@ -101,11 +101,7 @@ class TokenStream:
 
         return result
 
-    def move_forward_till_closing_bracket_token(self):
-        while self.current_kind() != TokenType.closing_bracket_:
-            assert (self.forward())
-
-    def move_forward_till_params_end_token(self):
-        while self.current_kind() != TokenType.params_end_:
+    def move_forward_to_token_type(self, token_type):
+        while self.current_kind() != token_type:
             assert (self.forward())
 

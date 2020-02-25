@@ -8,7 +8,7 @@ ROOT_DIR_FOR_TEST = RepoPath.get_repository_path()
 
 class Test_FileSearcher(unittest.TestCase):
 
-    def test_findIncludePath(self):
+    def test_find_path_for_current_include(self):
         includes_to_find = ['timer_sys.h', 'R_LogOut.hpp', 'ICSVFileReader.h']
         include_file_searcher_obj = FileSearcher(ROOT_DIR_FOR_TEST)
         include_file_searcher_obj.find_file_path(includes_to_find)

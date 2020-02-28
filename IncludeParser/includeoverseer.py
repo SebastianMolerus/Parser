@@ -3,7 +3,7 @@ from includeparser import IncludeParser
 from SystemModules.FileOpener.fileopener import FileOpener
 from SystemModules.RepoPath.repopath import RepoPath
 import re
-
+import os.path
 
 class IncludeOverseer:
     def __init__(self, path_to_header_class_file):
@@ -19,7 +19,7 @@ class IncludeOverseer:
 
         self._root_class_include_paths = []
 
-        if self._is_correct_header_file_type(path_to_header_class_file):
+        if self._is_file_exists_and_has_correct_header_file_type(path_to_header_class_file):
             self._header_class_path = path_to_header_class_file
             self._convert_header_to_source_file()
             self._pepare_root_includes_path()
@@ -39,13 +39,15 @@ class IncludeOverseer:
         return self._headers_to_stub_list
 
     def parse_all(self):
+        if not self._root_class_include_paths:
+            return
         print "Start Parsing..."
         for root_class_include in self._root_class_include_paths:
-            list = self._get_includes_path_list_from_parsing_file(root_class_include)
-            self._headers_to_stub_list.extend(list)
-            self._parse_include_files_from_path_list(list)
+            temp_list = self._get_includes_path_list_from_parsing_file(root_class_include)
+            self._headers_to_stub_list.extend(temp_list)
+            self._parse_include_files_from_path_list(temp_list)
+        self._remove_duplicates()
         print "Parsing End"
-
 
     def _parse_include_files_from_path_list(self, header_file_list):
         if not header_file_list:
@@ -67,9 +69,15 @@ class IncludeOverseer:
 
 
     def _pepare_root_includes_path(self):
+        #OPEN HEADER FILE
         code_str = self._file_opener_obj.read_all_from_file(self._header_class_path)
+        if not code_str:
+            return
         self._file_includes_list.extend(self._parse_includes(code_str))
+        #OPEN SOURCE FILE
         code_str = self._file_opener_obj.read_all_from_file(self._source_class_path)
+        if not code_str:
+            return
         self._file_includes_list.extend(self._parse_includes(code_str))
         self._file_includes_list.remove(self._class_for_test_file_name)
 
@@ -86,7 +94,9 @@ class IncludeOverseer:
         else:
             pass
     
-    def _is_correct_header_file_type(self, path_to_header_class_file):
+    def _is_file_exists_and_has_correct_header_file_type(self, path_to_header_class_file):
+        if not os.path.isfile(path_to_header_class_file):
+            return False
         result = re.findall(self._regex_header_pattern, path_to_header_class_file)
         self._class_for_test_file_name = ""
         if result:
@@ -96,13 +106,19 @@ class IncludeOverseer:
                 self._class_for_test_file_name += match[1]
             return True
         return False
-         
+    
+    def _remove_duplicates(self):
+        res = []
+        for item in self._headers_to_stub_list:
+            if item not in res:
+                res.append(item)
+        self._headers_to_stub_list = res
 
 
 
 
-#o = IncludeOverseer("c:\\R_PC\\My_Programs\\UT_Parser\\Parser\\IncludeParser\\test\\Project_Bagno\\Lugiks\\Engine\\Modules\\ModuleTest\\ModuleTest.hpp")
-#o.print_header_path_list()
-#o.parse_all()
-#o.print_header_path_list()
-#print len(o.get_headers_for_stub())
+# o = IncludeOverseer("C:\\R_PC\\My_Programs\\UT_Parser\\Parser\\IncludeParser\\test\\Project_Bagno\\Test\\H1\\H1.hpp")
+# o.print_header_path_list()
+# o.parse_all()
+# o.print_header_path_list()
+# print len(o.get_headers_for_stub())

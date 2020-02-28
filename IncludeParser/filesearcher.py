@@ -8,6 +8,8 @@ class FileSearcher:
 
     def find_file_path(self, to_find_list):
         self._found_file_list = []
+        if not to_find_list:
+            return
         for dirName, subdirList, fileList in os.walk(self._root_dir):
             for fileName in fileList:
                 if fileName in to_find_list:

@@ -1,7 +1,7 @@
 from TreeBuilder.expressions import ClassExpression, NamespaceExpression, CTorExpression, MethodExpression, \
     DTorExpression, OperatorExpression
 from TreeBuilder.parsing_utilities import get_return_part_as_str, get_method_parameters_as_str, \
-    convert_param_tokens_to_string, get_return_part
+    convert_param_tokens_to_string, get_return_part_as_tokens
 from TreeBuilder.tok import TokenType, Token
 
 
@@ -159,10 +159,10 @@ def parse_destructor(token_stream, expression_context):
 
 
 def parse_operator(token_stream, expression_context):
+    assert token_stream.current_kind() == TokenType.operator_
+
     if expression_context.get_current_scope() != TokenType.public_:
         return None
-
-    assert token_stream.current_kind() == TokenType.operator_
 
     token_stream.forward()
 
@@ -171,7 +171,7 @@ def parse_operator(token_stream, expression_context):
         operator_name += token_stream.current_content()
         token_stream.forward()
 
-    operator_return_tokens = get_return_part(token_stream)
+    operator_return_tokens = get_return_part_as_tokens(token_stream)
     del operator_return_tokens[-1]
     return_pars_as_str = convert_param_tokens_to_string(operator_return_tokens)
 

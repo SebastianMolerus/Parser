@@ -1,31 +1,25 @@
 import pytest
 from TreeBuilder.parsing import parse_method
 from TreeBuilder.tok import TokenType
-from TreeBuilder.token_reader import TokenReader
-from TreeBuilder.token_stream import TokenStream
+from mock import Mock
 
 
 def test_beginning_not_on_params_begin():
-    tr = TokenReader(source_code='''
-    foo(
-    ''')
-    ts = TokenStream(tr)
-    ts.forward()
+    token_stream = Mock()
+    token_stream.return_value.current_kind.return_value == TokenType.params_end_
 
     with pytest.raises(Exception):
-        parse_method(ts)
+        parse_method(token_stream)
+
+    assert len(token_stream.mock_calls) == 1
 
 
 def test_token_from_left_is_not_identifier():
-    tr = TokenReader(source_code='''
-    void typedef();
-    ''')
-    ts = TokenStream(tr)
-    ts.forward()
-    ts.forward()
-    ts.forward()
-
-    assert ts.current_kind() == TokenType.params_begin_
+    token_stream = Mock()
+    token_stream.current_kind.return_value = TokenType.params_begin_
+    token_stream.get_token_kind_from_left.return_value = TokenType.typedef_
 
     with pytest.raises(Exception):
-        parse_method(ts)
+        parse_method(token_stream)
+
+    assert len(token_stream.mock_calls) == 2

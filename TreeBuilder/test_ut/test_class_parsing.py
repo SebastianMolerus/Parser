@@ -1,8 +1,10 @@
 import pytest
 from TreeBuilder.expressions import ClassExpression, MethodExpression
 from TreeBuilder.parsing import parse_class
+from TreeBuilder.tok import TokenType
 from TreeBuilder.token_reader import TokenReader
 from TreeBuilder.token_stream import TokenStream
+from mock import Mock
 
 
 def test_empty_class():
@@ -21,14 +23,16 @@ def test_empty_class():
 
 
 def test_not_identifier_token_after_class_keyword():
-    tr = TokenReader(source_code='''
-    class class { }
-    ''')
-    ts = TokenStream(tr)
-    ts.forward()
+    token_stream = Mock()
+    token_stream.forward.return_value = None
+    token_stream.current_kind.side_effect = [TokenType.class_, TokenType.typedef_]
 
     with pytest.raises(Exception):
-        parse_class(ts)
+        parse_class(token_stream)
+
+    assert len(token_stream.mock_calls) == 3
+    assert token_stream.current_kind.call_count == 2
+    assert token_stream.forward.call_count == 1
 
 
 def test_forwarded_class():

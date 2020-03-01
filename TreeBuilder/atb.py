@@ -1,7 +1,7 @@
 from token_reader import TokenReader
 from token_stream import TokenStream
 from expressions import Expression
-from Parsing.state_builder import StateParserBuilder
+from parsing import parse_expression
 
 
 class AbstractTreeBuilder:
@@ -15,13 +15,8 @@ class AbstractTreeBuilder:
     def build_ast(self):
         ast_tree = Expression('Root')
 
-        state_parser = StateParserBuilder(self.tokenStream).\
-            add_namespace_parsing().\
-            add_class_parsing()\
-            .get_product()
-
         while self.tokenStream.forward():
-            expr = state_parser.process()
+            expr = parse_expression(self.tokenStream)
             if expr is not None:
                 ast_tree.attach(expr)
         return ast_tree

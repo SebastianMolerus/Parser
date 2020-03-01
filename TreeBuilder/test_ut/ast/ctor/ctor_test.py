@@ -1,6 +1,5 @@
 import unittest
 
-from TreeBuilder.Parsing.ctor_state import CtorState
 from TreeBuilder.atb import AbstractTreeBuilder
 from TreeBuilder.expressions import CTorExpression, Expression
 from TreeBuilder.expressions import ClassExpression
@@ -11,18 +10,6 @@ from mock import Mock
 
 
 class Test_Ctor(unittest.TestCase):
-
-    def test_ctor_state_handle_implemented_inline(self):
-        pass
-        # token_stream_mock = Mock(TokenStream)
-        # token_stream_mock.current_kind = Mock(return_value=TokenType.semicolon_)
-        # expression_mock = Mock(Expression('ctor'))
-        # expression_mock.identifier = Mock(return_value='ctor')
-        # state = CtorState()
-        #
-        # parsed_object = state.handle(token_stream_mock, expression_mock)
-        #
-        # self.assertIsNone(parsed_object)
 
 
     def test_CtorSimple(self):

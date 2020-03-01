@@ -7,7 +7,7 @@ class Node:
     def attach(self, node):
         node._father = self
         self.children.append(node)
-        self.flat_list = self._get_flat_list(self.children)
+        self.flat_list = self.get_flat_list(self.children)
 
     def get_father(self):
         return self._father
@@ -20,13 +20,12 @@ class Node:
             ancestor = ancestor.get_father()
         return root
 
-    def _get_flat_list(self, l):
-        '''return_part one flat list contains all elements to easy iterate.'''
+    def get_flat_list(self, orig_list):
         f = []
 
-        for item in l:
+        for item in orig_list:
             f.append(item)
-            f.extend(self._get_flat_list(item.children))
+            f.extend(self.get_flat_list(item.children))
 
         return f
 

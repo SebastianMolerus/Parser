@@ -1,4 +1,5 @@
-from stateBase import State
+from TreeBuilder.Parsing.helpers import convert_param_tokens_to_string
+from state_base import State
 from TreeBuilder.tok import TokenType
 from TreeBuilder.expressions import CTorExpression
 from TreeBuilder.expressions import ClassExpression
@@ -23,7 +24,7 @@ class CtorState(State):
         constructor_parameters_as_tokens = \
             token_stream.get_all_valid_forward_tokens(not_valid_tokens=[TokenType.params_end_])
 
-        constructor_parameters_as_string = self.convert_param_tokens_to_string(constructor_parameters_as_tokens)
+        constructor_parameters_as_string = convert_param_tokens_to_string(constructor_parameters_as_tokens)
 
         token_stream.move_forward_to_token_type(TokenType.params_end_)
 

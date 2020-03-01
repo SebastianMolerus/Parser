@@ -1,8 +1,8 @@
 import unittest
 
-from TreeBuilder.Parsing.stateBase import State
-from TreeBuilder.Parsing.stateParser import StateParser
-from TreeBuilder.tokenstream import TokenStream
+from TreeBuilder.Parsing.state_base import State
+from TreeBuilder.Parsing.state_parser import StateParser
+from TreeBuilder.token_stream import TokenStream
 from mock import Mock
 
 

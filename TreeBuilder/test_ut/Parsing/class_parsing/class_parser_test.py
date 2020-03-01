@@ -4,7 +4,7 @@ from TreeBuilder.Parsing.class_parsing.class_children_provider import ClassChild
 from TreeBuilder.Parsing.class_parsing.class_parser import ClassParser
 from TreeBuilder.expressions import ClassExpression, Expression
 from TreeBuilder.tok import TokenType
-from TreeBuilder.tokenstream import TokenStream
+from TreeBuilder.token_stream import TokenStream
 from mock import Mock
 
 

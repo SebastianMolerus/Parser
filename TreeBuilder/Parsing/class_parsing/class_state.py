@@ -1,5 +1,5 @@
 from TreeBuilder.Parsing.class_parsing.class_parser import ClassParser
-from TreeBuilder.Parsing.stateBase import State
+from TreeBuilder.Parsing.state_base import State
 from TreeBuilder.tok import TokenType
 
 

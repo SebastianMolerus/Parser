@@ -1,6 +1,6 @@
 from TreeBuilder.tok import TokenType
-from stateBase import State
-from stateBuilder import StateParserBuilder
+from state_base import State
+from state_builder import StateParserBuilder
 
 
 class ParamsState(State):

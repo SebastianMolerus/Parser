@@ -1,7 +1,7 @@
-from stateBase import State
+from state_base import State
 from TreeBuilder.tok import TokenType
 from TreeBuilder.expressions import NamespaceExpression
-from stateBuilder import StateParserBuilder
+from state_builder import StateParserBuilder
 
 
 class NamespaceState(State):

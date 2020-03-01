@@ -55,7 +55,7 @@ class TokenStream:
         return kind
 
     def get_all_valid_forward_tokens(self, not_valid_tokens):
-        if not_valid_tokens is None:
+        if len(not_valid_tokens) == 0:
             raise Exception("No arguments given.")
 
         starting_position = self._current_index
@@ -68,36 +68,6 @@ class TokenStream:
             result.append(self.current_token)
 
         self._current_index = starting_position
-
-        return result
-
-    def get_return_part(self):
-        assert (self.current_kind() == TokenType.params_begin_)
-
-        stop_parsing_tokens = [TokenType.opening_bracket_,
-                               TokenType.closing_bracket_,
-                               TokenType.semicolon_]
-
-        starting_position = self._current_index
-
-        assert (self.backward())
-        result = []
-
-        while self.backward():
-            if self.current_kind() in stop_parsing_tokens:
-                break
-
-            if self.current_kind() == TokenType.colon_ and \
-                    self.get_token_kind_from_right() != TokenType.colon_ and \
-                    self.get_token_kind_from_left() != TokenType.colon_:
-                break
-
-            if self.current_kind() != TokenType.virtual_:
-                result.append(self.current_token)
-
-        self._current_index = starting_position
-
-        result.reverse()
 
         return result
 

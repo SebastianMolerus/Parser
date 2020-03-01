@@ -1,4 +1,4 @@
-from stateParser import StateParser
+from state_parser import StateParser
 
 
 class StateParserBuilder:
@@ -11,7 +11,7 @@ class StateParserBuilder:
         return self
 
     def add_namespace_parsing(self):
-        from nsState import NamespaceState
+        from namespace_state import NamespaceState
         self._sp.add_state(NamespaceState())
         return self
 
@@ -21,22 +21,22 @@ class StateParserBuilder:
         return self
 
     def add_operator_parsing(self):
-        from opState import OperatorState
+        from operator_state import OperatorState
         self._sp.add_state(OperatorState())
         return self
 
     def add_dtor_parsing(self):
-        from dtorState import DtorState
+        from dtor_state import DtorState
         self._sp.add_state(DtorState())
         return self
 
     def add_ctor_parsing(self):
-        from ctorState import CtorState
+        from ctor_state import CtorState
         self._sp.add_state(CtorState())
         return self
 
     def add_method_parsing(self):
-        from methodState import MethodState
+        from method_state import MethodState
         self._sp.add_state(MethodState())
         return self
 

@@ -1,12 +1,12 @@
 import unittest
 
-from TreeBuilder.Parsing.ctorState import CtorState
+from TreeBuilder.Parsing.ctor_state import CtorState
 from TreeBuilder.atb import AbstractTreeBuilder
 from TreeBuilder.expressions import CTorExpression, Expression
 from TreeBuilder.expressions import ClassExpression
 from TreeBuilder.expressions import NamespaceExpression
 from TreeBuilder.tok import TokenType
-from TreeBuilder.tokenstream import TokenStream
+from TreeBuilder.token_stream import TokenStream
 from mock import Mock
 
 

@@ -1,4 +1,5 @@
-from stateBase import State
+from TreeBuilder.Parsing.helpers import get_return_part, convert_param_tokens_to_string
+from state_base import State
 from TreeBuilder.tok import TokenType, Token
 from TreeBuilder.expressions import MethodExpression
 
@@ -10,7 +11,7 @@ class MethodState(State):
     def is_valid(self, token_stream, expression_context):
         return State.is_valid(self, token_stream, expression_context)\
                and \
-               (expression_context.get_current_scope() == TokenType.public_ \
+               (expression_context.get_current_scope() == TokenType.public_
                 or
                 expression_context.is_friend_inside()) \
                and \
@@ -52,11 +53,11 @@ class MethodState(State):
     def _get_method_parameters_as_str(self, token_stream):
         method_parameters_as_tokens = token_stream.get_all_valid_forward_tokens(not_valid_tokens=
                                                                                 [TokenType.params_end_])
-        method_parameters_as_string = self.convert_param_tokens_to_string(method_parameters_as_tokens)
+        method_parameters_as_string = convert_param_tokens_to_string(method_parameters_as_tokens)
         return method_parameters_as_string
 
     def _get_return_part_as_str(self, token_stream):
-        method_return_part_as_tokens = token_stream.get_return_part()
-        method_return_part_as_string = self.convert_param_tokens_to_string(method_return_part_as_tokens)
+        method_return_part_as_tokens = get_return_part(token_stream)
+        method_return_part_as_string = convert_param_tokens_to_string(method_return_part_as_tokens)
         return method_return_part_as_string
 

@@ -1,8 +1,8 @@
-from TreeBuilder.Parsing.parser_creator import ClassParserCreator
+from TreeBuilder.Parsing.parser_factory import ClassParserFactory
 from TreeBuilder.tok import TokenType
 
 
-class ClassChildrenProvider(ClassParserCreator):
+class ClassChildrenProvider(ClassParserFactory):
     def __init__(self, token_stream, *args, **kwargs):
         super(ClassChildrenProvider, self).__init__(*args, **kwargs)
         self._state_parser = super(ClassChildrenProvider, self).get_parser(token_stream)

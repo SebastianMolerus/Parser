@@ -3,7 +3,7 @@ from parameterized import parameterized
 
 from mock import Mock
 
-from TreeBuilder.tokrdr import TokenReader
+from TreeBuilder.token_reader import TokenReader
 from TreeBuilder.tok import TokenType
 from TreeBuilder.tok import Token
 from TreeBuilder.pproc import PreProcess

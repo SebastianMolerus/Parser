@@ -6,26 +6,26 @@ from pproc import PreProcess
 class TokenReader:
     """Class used for getting tokens from file or text. """
 
-    def __init__(self, source_file=None, text=None, pre_process=None):
+    def __init__(self, source_file=None, source_code=None, pre_process=None):
         """ Initialize with file or text.
 
         Args:
             source_file:     path to file to read tokens from.
 
-            text:     string to read tokens from.
+            source_code:     string to read tokens from.
 
         """
 
         self._identifier = ' '
         self._characters = []
 
-        if text and source_file:
+        if source_code and source_file:
             raise Exception("Defined two resources of data.")
 
-        if text:
-            for char in text: 
+        if source_code:
+            for char in source_code:
                 self._characters.append(char)
-        else:
+        if source_file:
             with open(source_file) as f:
                 for line in f:
                     for char in line: 

@@ -1,16 +1,10 @@
 import unittest
 
 from TreeBuilder.atb import AbstractTreeBuilder
-from TreeBuilder.expressions import CTorExpression, Expression
-from TreeBuilder.expressions import ClassExpression
-from TreeBuilder.expressions import NamespaceExpression
-from TreeBuilder.tok import TokenType
-from TreeBuilder.token_stream import TokenStream
-from mock import Mock
+from TreeBuilder.expressions import CTorExpression, ClassExpression, NamespaceExpression
 
 
 class Test_Ctor(unittest.TestCase):
-
 
     def test_CtorSimple(self):
         tree = AbstractTreeBuilder(source_code="""

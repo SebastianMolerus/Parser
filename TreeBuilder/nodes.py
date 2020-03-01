@@ -40,7 +40,6 @@ class Node:
 
 
 class NodeIter:
-
     def __init__(self, node_list):
         self._node_list = node_list
         self._currIndex = -1

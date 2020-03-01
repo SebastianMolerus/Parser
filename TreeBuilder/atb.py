@@ -7,7 +7,7 @@ from parsing import parse_expression
 class AbstractTreeBuilder:
     def __init__(self, source_code=None, file_path=None):
         if source_code is not None:
-            self.tokenReader = TokenReader(text=source_code)
+            self.tokenReader = TokenReader(source_code=source_code)
         else:
             self.tokenReader = TokenReader(source_file=file_path)
         self.tokenStream = TokenStream(self.tokenReader)

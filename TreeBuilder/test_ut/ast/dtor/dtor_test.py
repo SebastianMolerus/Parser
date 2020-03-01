@@ -71,5 +71,5 @@ class Test_AstDtor(unittest.TestCase):
         };
         """).build_ast()
 
-        self.assertEqual(len(tree),1)
+        self.assertEqual(len(tree), 1)
         self.assertEqual(tree[0], ClassExpression('A'))

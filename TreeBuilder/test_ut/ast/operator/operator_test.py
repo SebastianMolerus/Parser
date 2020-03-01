@@ -48,7 +48,6 @@ class Test_AstOperator(unittest.TestCase):
         self.assertEqual(len(tree), 1)
         self.assertEqual(tree[0], ClassExpression('A'))
 
-
     def test_TwoDifferentPublicOperatoros(self):
         tree = AbstractTreeBuilder(source_code="""
         class A{
@@ -68,7 +67,7 @@ class Test_AstOperator(unittest.TestCase):
         self.assertEqual(tree[2].identifier, '+')
         self.assertEqual(tree[2].parameters, 'const A& bagno')
         self.assertEqual(tree[2].return_part, 'A&')
-    
+
     def test_OnePublicOperatorWithLongNamespace(self):
         tree = AbstractTreeBuilder(source_code="""
         class A{
@@ -83,7 +82,6 @@ class Test_AstOperator(unittest.TestCase):
         self.assertEqual(tree[1].identifier, '=')
         self.assertEqual(tree[1].parameters, 'const A::B::C::D::E::F::G::H::I::J::K::L::M::N::O::P& x')
         self.assertEqual(tree[1].return_part, 'A::B::C::D::E::F::G::H::I::J::K::L::M::N::O::P&')
-
 
     def test_OnePublicOperatorWithGarbageComments(self):
         tree = AbstractTreeBuilder(source_code="""
@@ -114,5 +112,3 @@ class Test_AstOperator(unittest.TestCase):
         self.assertEqual(tree[1].identifier, '+')
         self.assertEqual(tree[1].parameters, 'const A& bagno')
         self.assertEqual(tree[1].return_part, 'A&')
-
-        

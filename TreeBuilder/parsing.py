@@ -10,7 +10,7 @@ def get_return_part(token_stream):
                            TokenType.closing_bracket_,
                            TokenType.semicolon_]
 
-    starting_position = token_stream._current_index
+    starting_position = token_stream.current_index
 
     assert (token_stream.backward())
     result = []
@@ -27,7 +27,7 @@ def get_return_part(token_stream):
         if token_stream.current_kind() != TokenType.virtual_:
             result.append(token_stream.current_token)
 
-    token_stream._current_index = starting_position
+    token_stream.current_index = starting_position
 
     result.reverse()
 
@@ -35,7 +35,7 @@ def get_return_part(token_stream):
 
 
 def get_method_parameters_as_str(token_stream):
-    method_parameters_as_tokens = token_stream.get_all_valid_forward_tokens(not_valid_tokens=
+    method_parameters_as_tokens = token_stream.get_all_valid_forward_tokens(not_valid_token_types=
                                                                             [TokenType.params_end_])
     method_parameters_as_string = convert_param_tokens_to_string(method_parameters_as_tokens)
     return method_parameters_as_string
@@ -64,6 +64,9 @@ def convert_param_tokens_to_string(method_params_tokens):
 
 
 def parse_class(token_stream):
+    if token_stream.current_kind() != TokenType.class_:
+        raise Exception("Expected 'class' keyword")
+
     token_stream.forward()
 
     # At class 'identifier'
@@ -154,7 +157,7 @@ def parse_method(token_stream):
     token_stream.move_forward_to_token_type(TokenType.params_end_)
 
     after_method_parameters_tokens = \
-        token_stream.get_all_valid_forward_tokens(not_valid_tokens=
+        token_stream.get_all_valid_forward_tokens(not_valid_token_types=
                                                   [TokenType.semicolon_, TokenType.opening_bracket_])
 
     is_method_const = False
@@ -181,7 +184,7 @@ def parse_constructor(token_stream, expression_context):
     constructor_identifier = expression_context.identifier
 
     constructor_parameters_as_tokens = \
-        token_stream.get_all_valid_forward_tokens(not_valid_tokens=[TokenType.params_end_])
+        token_stream.get_all_valid_forward_tokens(not_valid_token_types=[TokenType.params_end_])
 
     constructor_parameters_as_string = convert_param_tokens_to_string(constructor_parameters_as_tokens)
 
@@ -212,28 +215,31 @@ def parse_destructor(token_stream, expression_context):
 
 def parse_operator(token_stream, expression_context):
 
+    if expression_context is None:
+        return None
+
     if expression_context.get_current_scope() != TokenType.public_ and not expression_context.is_friend_inside():
         return None
 
-    operator_id_str = ''
+    operator_name = ''
     token_stream.forward()
 
     while token_stream.current_kind() != TokenType.params_begin_:
-        operator_id_str += token_stream.current_content()
+        operator_name += token_stream.current_content()
         token_stream.forward()
 
     operator_return_tokens = get_return_part(token_stream)
     del operator_return_tokens[-1]
     return_pars_as_str = convert_param_tokens_to_string(operator_return_tokens)
 
-    operator_params_tokens = token_stream.get_all_valid_forward_tokens(not_valid_tokens=[TokenType.params_end_])
+    operator_params_tokens = token_stream.get_all_valid_forward_tokens(not_valid_token_types=[TokenType.params_end_])
     str_params = convert_param_tokens_to_string(operator_params_tokens)
 
     token_stream.move_forward_to_token_type(TokenType.params_end_)
 
     token_stream.forward()
     if token_stream.current_kind() == TokenType.semicolon_:
-        return OperatorExpression(operator_id_str, str_params, return_pars_as_str)
+        return OperatorExpression(operator_name, str_params, return_pars_as_str)
     else:
         token_stream.move_forward_to_token_type(TokenType.closing_bracket_)
 

@@ -151,6 +151,17 @@ def test_moving_till_given_token():
     assert ts.current_kind() == TokenType.class_
 
 
+def test_moving_till_given_token_but_already_on_this_token():
+    tr = TokenReader(source_code="A B C namespace class operator")
+
+    ts = TokenStream(tr)
+    ts.forward()
+
+    ts.move_forward_to_token_type(TokenType.identifier_)
+
+    assert ts.current_content() == 'A'
+
+
 def test_getting_valid_tokens_no_stop_token_given():
     tr = TokenReader(source_code="A B C namespace class operator")
 

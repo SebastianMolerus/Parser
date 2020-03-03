@@ -84,3 +84,20 @@ def test_implemented_method_is_not_valid():
     assert parse_method(ts) is None
 
 
+def test_checking_method_expr_fields():
+    tr = TokenReader(source_code='''
+       void Foo(int a) const;
+       ''')
+    ts = TokenStream(tr)
+    ts.forward()
+    ts.move_forward_to_token_type(token_type=TokenType.params_begin_)
+
+    parsed_method = parse_method(ts)
+
+    assert isinstance(parsed_method, MethodExpression)
+    assert parsed_method.identifier == 'Foo'
+    assert parsed_method.return_part == 'void'
+    assert parsed_method.parameters == 'int a'
+    assert parsed_method.is_const
+
+

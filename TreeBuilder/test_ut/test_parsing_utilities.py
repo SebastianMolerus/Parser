@@ -193,50 +193,40 @@ class TestGetReturnPartAsTokensSuite:
 class TestConvertParamTokensToString:
     def test_reference_is_applied_with_space(self):
         tokens = get_all_tokens("&A")
-
         assert convert_param_tokens_to_string(tokens) == '& A'
 
     def test_star_is_applied_with_space(self):
         tokens = get_all_tokens("*A")
-
         assert convert_param_tokens_to_string(tokens) == '* A'
 
     def test_colon_is_applied_without_space(self):
         tokens = get_all_tokens(": A")
-
         assert convert_param_tokens_to_string(tokens) == ':A'
 
     def test_two_colons_are_applied_without_space(self):
         tokens = get_all_tokens(": : A")
-
         assert convert_param_tokens_to_string(tokens) == '::A'
 
     def test_comma_applied_space(self):
         tokens = get_all_tokens("A,B")
-
         assert convert_param_tokens_to_string(tokens) == 'A, B'
 
     def test_space_between_identifier_tokens(self):
         tokens = get_all_tokens("A B")
-
         assert convert_param_tokens_to_string(tokens) == 'A B'
 
     def test_two_colons_between_identifiers(self):
         tokens = get_all_tokens("A : : B")
-
         assert convert_param_tokens_to_string(tokens) == 'A::B'
 
     def test_two_stars_between_identifiers(self):
         tokens = get_all_tokens("A**B")
-
         assert convert_param_tokens_to_string(tokens) == 'A** B'
 
     def test_star_ref_between_identifiers(self):
         tokens = get_all_tokens("A*&B")
-
         assert convert_param_tokens_to_string(tokens) == 'A*& B'
 
     def test_two_colons_star_and_comma(self):
         tokens = get_all_tokens("A::B*,C")
-
         assert convert_param_tokens_to_string(tokens) == 'A::B*, C'

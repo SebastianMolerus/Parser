@@ -124,6 +124,7 @@ def parse_method(token_stream):
 
 def parse_constructor(token_stream, expression_context):
     assert token_stream.current_kind() == TokenType.params_begin_
+    assert isinstance(expression_context, ClassExpression)
     constructor_identifier = expression_context.identifier
 
     constructor_parameters_as_tokens = \
@@ -135,7 +136,8 @@ def parse_constructor(token_stream, expression_context):
 
     token_stream.forward()
     if token_stream.current_kind() == TokenType.semicolon_:
-        return CTorExpression(constructor_identifier, constructor_parameters_as_string)
+        return CTorExpression(identifier=constructor_identifier,
+                              parameters=constructor_parameters_as_string)
     else:
         token_stream.move_forward_to_token_type(TokenType.closing_bracket_)
 

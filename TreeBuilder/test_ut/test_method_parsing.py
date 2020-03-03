@@ -31,9 +31,9 @@ def test_token_from_left_is_not_identifier():
     assert token_stream.get_token_kind_from_left.call_count == 1
 
 
-def test_method_non_const_non_virtual_not_implemented():
+def test_const_is_part_of_method():
     tr = TokenReader(source_code='''
-       void foo();
+       void bar() const;
        ''')
     ts = TokenStream(tr)
     ts.forward()
@@ -42,9 +42,45 @@ def test_method_non_const_non_virtual_not_implemented():
     parsed_method = parse_method(ts)
 
     assert isinstance(parsed_method, MethodExpression)
-    assert parsed_method.identifier == 'foo'
-    assert parsed_method.parameters == ''
+    assert parsed_method.identifier == 'bar'
+    assert parsed_method.is_const
+
+
+def test_virtual_in_return_part_not_part_of_method():
+    tr = TokenReader(source_code='''
+       virtual void Foo();
+       ''')
+    ts = TokenStream(tr)
+    ts.forward()
+    ts.move_forward_to_token_type(token_type=TokenType.params_begin_)
+
+    parsed_method = parse_method(ts)
+
+    assert isinstance(parsed_method, MethodExpression)
+    assert parsed_method.identifier == 'Foo'
     assert parsed_method.return_part == 'void'
-    assert not parsed_method.is_const
+
+
+def test_pure_virtual_is_not_valid():
+    tr = TokenReader(source_code='''
+      virtual void Foo() = 0;
+       ''')
+    ts = TokenStream(tr)
+    ts.forward()
+    ts.move_forward_to_token_type(token_type=TokenType.params_begin_)
+
+    assert parse_method(ts) is None
+
+
+def test_implemented_method_is_not_valid():
+    tr = TokenReader(source_code='''
+       void Foo(){
+       }
+       ''')
+    ts = TokenStream(tr)
+    ts.forward()
+    ts.move_forward_to_token_type(token_type=TokenType.params_begin_)
+
+    assert parse_method(ts) is None
 
 

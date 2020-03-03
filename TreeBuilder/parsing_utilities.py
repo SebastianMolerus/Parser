@@ -35,9 +35,9 @@ def get_return_part_as_tokens(token_stream):
     return result
 
 
-def convert_param_tokens_to_string(method_params_tokens):
+def convert_param_tokens_to_string(param_tokens):
     str_method_params = ''
-    for methodParamToken in method_params_tokens:
+    for methodParamToken in param_tokens:
         if (methodParamToken.kind == TokenType.ref_) or \
                 (methodParamToken.kind == TokenType.star_) or \
                 (methodParamToken.kind == TokenType.colon_):
@@ -51,13 +51,13 @@ def convert_param_tokens_to_string(method_params_tokens):
     return str_method_params
 
 
-def get_method_parameters_as_str(token_stream):
+def format_method_parameters_as_string(token_stream):
     method_parameters_as_tokens = token_stream.get_all_valid_forward_tokens(not_valid_token_types=
                                                                             [TokenType.params_end_])
     return convert_param_tokens_to_string(method_parameters_as_tokens)
 
 
-def get_return_part_as_str(token_stream):
+def format_return_part_as_string(token_stream):
     method_return_part_as_tokens = get_return_part_as_tokens(token_stream)
     return convert_param_tokens_to_string(method_return_part_as_tokens)
 

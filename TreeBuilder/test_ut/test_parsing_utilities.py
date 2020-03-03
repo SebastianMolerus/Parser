@@ -1,15 +1,12 @@
 import pytest
-from TreeBuilder.parsing_utilities import get_return_part_as_tokens
+from TreeBuilder.parsing_utilities import get_return_part_as_tokens, convert_param_tokens_to_string
 from TreeBuilder.tok import TokenType
 from TreeBuilder.token_reader import TokenReader
 from TreeBuilder.token_stream import TokenStream
 from mock import Mock
 
 
-class TestGetReturnParsAsTokensSuite:
-    def __init__(self):
-        pass
-
+class TestGetReturnPartAsTokensSuite:
     def test_not_on_params_begin(self):
         token_stream = Mock()
         token_stream.current_kind.return_value = TokenType.params_end_
@@ -182,3 +179,86 @@ class TestGetReturnParsAsTokensSuite:
         saved_token = ts.current_token
         assert len(get_return_part_as_tokens(ts)) > 0
         assert saved_token is ts.current_token
+
+
+class TestConvertParamTokensToString:
+    def test_reference_is_applied_with_space(self):
+        tr = TokenReader(source_code="&A")
+        ts = TokenStream(tr)
+        tokens = []
+        while ts.forward():
+            tokens.append(ts.current_token)
+
+        assert convert_param_tokens_to_string(tokens) == '& A'
+
+    def test_star_is_applied_with_space(self):
+        tr = TokenReader(source_code="*A")
+        ts = TokenStream(tr)
+        tokens = []
+        while ts.forward():
+            tokens.append(ts.current_token)
+
+        assert convert_param_tokens_to_string(tokens) == '* A'
+
+    def test_colon_is_applied_without_space(self):
+        tr = TokenReader(source_code=": A")
+        ts = TokenStream(tr)
+        tokens = []
+        while ts.forward():
+            tokens.append(ts.current_token)
+
+        assert convert_param_tokens_to_string(tokens) == ':A'
+
+    def test_two_colons_are_applied_without_space(self):
+        tr = TokenReader(source_code=": : A")
+        ts = TokenStream(tr)
+        tokens = []
+        while ts.forward():
+            tokens.append(ts.current_token)
+
+        assert convert_param_tokens_to_string(tokens) == '::A'
+
+    def test_comma_applied_space(self):
+        tr = TokenReader(source_code="A,B")
+        ts = TokenStream(tr)
+        tokens = []
+        while ts.forward():
+            tokens.append(ts.current_token)
+
+        assert convert_param_tokens_to_string(tokens) == 'A, B'
+
+    def test_space_between_identifier_tokens(self):
+        tr = TokenReader(source_code="A B")
+        ts = TokenStream(tr)
+        tokens = []
+        while ts.forward():
+            tokens.append(ts.current_token)
+
+        assert convert_param_tokens_to_string(tokens) == 'A B'
+
+    def test_two_colons_between_identifiers(self):
+        tr = TokenReader(source_code="A : : B")
+        ts = TokenStream(tr)
+        tokens = []
+        while ts.forward():
+            tokens.append(ts.current_token)
+
+        assert convert_param_tokens_to_string(tokens) == 'A::B'
+
+    def test_two_stars_between_identifiers(self):
+        tr = TokenReader(source_code="A**B")
+        ts = TokenStream(tr)
+        tokens = []
+        while ts.forward():
+            tokens.append(ts.current_token)
+
+        assert convert_param_tokens_to_string(tokens) == 'A** B'
+
+    def test_star_ref_between_identifiers(self):
+        tr = TokenReader(source_code="A*&B")
+        ts = TokenStream(tr)
+        tokens = []
+        while ts.forward():
+            tokens.append(ts.current_token)
+
+        assert convert_param_tokens_to_string(tokens) == 'A*& B'

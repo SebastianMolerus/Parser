@@ -1,6 +1,6 @@
 from TreeBuilder.expressions import ClassExpression, NamespaceExpression, CTorExpression, MethodExpression, \
     DTorExpression, OperatorExpression
-from TreeBuilder.parsing_utilities import get_return_part_as_str, get_method_parameters_as_str, \
+from TreeBuilder.parsing_utilities import format_return_part_as_string, format_method_parameters_as_string, \
     convert_param_tokens_to_string, get_return_part_as_tokens
 from TreeBuilder.tok import TokenType, Token
 
@@ -95,8 +95,8 @@ def parse_method(token_stream):
     assert token_stream.current_kind() == TokenType.params_begin_
     assert token_stream.get_token_kind_from_left() == TokenType.identifier_
     method_name = token_stream.get_token_content_from_left()
-    method_return_part_as_string = get_return_part_as_str(token_stream)
-    method_parameters_as_string = get_method_parameters_as_str(token_stream)
+    method_return_part_as_string = format_return_part_as_string(token_stream)
+    method_parameters_as_string = format_method_parameters_as_string(token_stream)
     token_stream.move_forward_to_token_type(TokenType.params_end_)
     after_method_parameters_tokens = \
         token_stream.get_all_valid_forward_tokens(not_valid_token_types=
@@ -112,10 +112,10 @@ def parse_method(token_stream):
     while token_stream.forward():
         # Method to stub
         if token_stream.current_kind() == TokenType.semicolon_:
-            return MethodExpression(method_name,
-                                    method_parameters_as_string,
-                                    method_return_part_as_string,
-                                    is_method_const)
+            return MethodExpression(identifier=method_name,
+                                    parameters=method_parameters_as_string,
+                                    return_part=method_return_part_as_string,
+                                    is_const=is_method_const)
         # Method implemented
         elif token_stream.current_kind() == TokenType.opening_bracket_:
             token_stream.move_forward_to_token_type(TokenType.closing_bracket_)

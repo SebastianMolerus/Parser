@@ -144,6 +144,7 @@ def parse_constructor(token_stream, expression_context):
 
 def parse_destructor(token_stream, expression_context):
     assert token_stream.current_kind() == TokenType.tilde_
+    assert isinstance(expression_context, ClassExpression)
 
     if expression_context.get_current_scope() != TokenType.public_:
         return None
@@ -155,7 +156,7 @@ def parse_destructor(token_stream, expression_context):
     token_stream.forward()
 
     if token_stream.current_kind() == TokenType.semicolon_:
-        return DTorExpression(destructor_identifier)
+        return DTorExpression(identifier=destructor_identifier)
     else:
         token_stream.move_forward_to_token_type(TokenType.closing_bracket_)
 
@@ -184,7 +185,9 @@ def parse_operator(token_stream, expression_context):
 
     token_stream.forward()
     if token_stream.current_kind() == TokenType.semicolon_:
-        return OperatorExpression(operator_name, str_params, return_pars_as_str)
+        return OperatorExpression(identifier=operator_name,
+                                  parameters=str_params,
+                                  return_part=return_pars_as_str)
     else:
         token_stream.move_forward_to_token_type(TokenType.closing_bracket_)
 

@@ -14,6 +14,7 @@ def get_prepared_token_stream(source_code):
     ts.move_forward_to_token_type(TokenType.params_begin_)
     return ts
 
+
 def test_current_token_is_not_params_begin():
     token_stream = Mock()
     token_stream.current_kind.return_value = TokenType.params_end_

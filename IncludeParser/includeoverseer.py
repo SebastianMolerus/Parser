@@ -1,6 +1,6 @@
 from filesearcher import FileSearcher
 from includeparser import IncludeParser
-from SystemModules.FileOpener.fileopener import FileOpener
+from SystemModules.FileOpener.fileopener import read_all_from_file
 from SystemModules.RepoPath.repopath import RepoPath
 import re
 import os.path
@@ -12,8 +12,6 @@ class IncludeOverseer:
         self._source_class_path = ''
         self._regex_header_pattern = r"([^\\]+)\.(h|hpp)$"      #r"^.*\.(h|hpp)$"
         self._includeparser_obj = IncludeParser()
-        self._file_opener_obj = FileOpener()
-
         self._file_includes_list = []
         self._headers_to_stub_list = []
 
@@ -44,6 +42,8 @@ class IncludeOverseer:
         print "Start Parsing..."
         for root_class_include in self._root_class_include_paths:
             temp_list = self._get_includes_path_list_from_parsing_file(root_class_include)
+            print temp_list
+            print "--------------------"
             self._headers_to_stub_list.extend(temp_list)
             self._parse_include_files_from_path_list(temp_list)
         self._remove_duplicates()
@@ -58,7 +58,7 @@ class IncludeOverseer:
             self._parse_include_files_from_path_list(list)
 
     def _get_includes_path_list_from_parsing_file(self, header_file_path):
-        code_str = self._file_opener_obj.read_all_from_file(header_file_path)
+        code_str = read_all_from_file(header_file_path)
         include_list = self._parse_includes(code_str)
         include_file_path_list = self._find_file_inludes_path(include_list, self._repo_path)
         return include_file_path_list
@@ -70,12 +70,12 @@ class IncludeOverseer:
 
     def _pepare_root_includes_path(self):
         #OPEN HEADER FILE
-        code_str = self._file_opener_obj.read_all_from_file(self._header_class_path)
+        code_str = read_all_from_file(self._header_class_path)
         if not code_str:
             return
         self._file_includes_list.extend(self._parse_includes(code_str))
         #OPEN SOURCE FILE
-        code_str = self._file_opener_obj.read_all_from_file(self._source_class_path)
+        code_str = read_all_from_file(self._source_class_path)
         if not code_str:
             return
         self._file_includes_list.extend(self._parse_includes(code_str))
@@ -117,8 +117,8 @@ class IncludeOverseer:
 
 
 
-# o = IncludeOverseer("C:\\R_PC\\My_Programs\\UT_Parser\\Parser\\IncludeParser\\test\\Project_Bagno\\Test\\H1\\H1.hpp")
-# o.print_header_path_list()
-# o.parse_all()
-# o.print_header_path_list()
-# print len(o.get_headers_for_stub())
+o = IncludeOverseer("C:\\Users\\PRybka\\Documents\\Python_Workspace\\UT_Parser\\Parser\\IncludeParser\\test\\Project_Bagno\\Test\\H1\\H1.hpp")
+o.print_header_path_list()
+o.parse_all()
+o.print_header_path_list()
+print len(o.get_headers_for_stub())

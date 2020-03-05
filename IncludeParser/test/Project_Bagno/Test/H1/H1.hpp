@@ -13,7 +13,7 @@
 
 int GLOBAL = 1;
 
-#inclue          "timer_sys_all.hpp"
+#include          "timer_sys_all.hpp"
 #include                   "singleton.hpp"
 #include     "ICSVFileReader.h"
 

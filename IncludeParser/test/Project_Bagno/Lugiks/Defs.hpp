@@ -1,2 +1,0 @@
-#define TIME_STRATEGY 45
-#define MS_TIME 1000

@@ -6,8 +6,8 @@ import re
 import os.path
 
 class IncludeOverseer:
-    def __init__(self, path_to_header_class_file):
-        self._repo_path = RepoPath.get_repository_path()
+    def __init__(self, path_to_header_class_file, project_path):
+        self._repo_path = project_path
         self._header_class_path = ''
         self._source_class_path = ''
         self._regex_header_pattern = r"([^\\]+)\.(h|hpp)$"      #r"^.*\.(h|hpp)$"
@@ -42,8 +42,6 @@ class IncludeOverseer:
         print "Start Parsing..."
         for root_class_include in self._root_class_include_paths:
             temp_list = self._get_includes_path_list_from_parsing_file(root_class_include)
-            print temp_list
-            print "--------------------"
             self._headers_to_stub_list.extend(temp_list)
             self._parse_include_files_from_path_list(temp_list)
         self._remove_duplicates()
@@ -117,8 +115,8 @@ class IncludeOverseer:
 
 
 
-o = IncludeOverseer("C:\\Users\\PRybka\\Documents\\Python_Workspace\\UT_Parser\\Parser\\IncludeParser\\test\\Project_Bagno\\Test\\H1\\H1.hpp")
-o.print_header_path_list()
-o.parse_all()
-o.print_header_path_list()
-print len(o.get_headers_for_stub())
+# o = IncludeOverseer("C:\\Users\\PRybka\\Documents\\Python_Workspace\\UT_Parser\\Parser\\IncludeParser\\test\\Project_Bagno\\Test\\H1\\H1.hpp")
+# o.print_header_path_list()
+# o.parse_all()
+# o.print_header_path_list()
+# print len(o.get_headers_for_stub())

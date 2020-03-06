@@ -1,36 +1,27 @@
 import unittest
+import os
 from IncludeParser.includeoverseer import IncludeOverseer
-from SystemModules.RepoPath.repopath import RepoPath
+from IncludeParser.ut_tests.create_enviroment_for_test import PROJECT_PATH
+from IncludeParser.ut_tests.create_enviroment_for_test import MODULE_NAME_HPP
+from IncludeParser.ut_tests.create_enviroment_for_test import MODULE_FOR_TEST
+from IncludeParser.ut_tests.create_enviroment_for_test import MODULE_NAME_CPP
+from IncludeParser.ut_tests.create_enviroment_for_test import EnvTestClass
 
-
-ROOT_DIR_FOR_TEST = RepoPath.get_repository_path()
-
+ROOT_DIR_FOR_TEST = os.path.dirname(os.path.abspath(__file__))
 
 class Test_IncludeOverseer(unittest.TestCase):
 
     def test_all_header_path_from_file(self):
-        test_object = IncludeOverseer(ROOT_DIR_FOR_TEST + "\\Lugiks\\Engine\\Modules\\ModuleTest\\ModuleTest.hpp")
-        exp_include_found_paths = [
-            ROOT_DIR_FOR_TEST + "\\Lugiks\\Defs.hpp",
-            ROOT_DIR_FOR_TEST + "\\Lugiks\\Engine\\R_LogOut.hpp",
-            ROOT_DIR_FOR_TEST + "\\Lugiks\\Engine\\Modules\\CSV_Reader\\csv_reader.h",
-            ROOT_DIR_FOR_TEST + "\\Lugiks\\Engine\\Modules\\SystemIncludes\\timer_sys1.hpp",
-            ROOT_DIR_FOR_TEST + "\\Lugiks\\Engine\\Modules\\ICSVFileReader\\ICSVFileReader.h"]
+        test_env_obj = EnvTestClass(ROOT_DIR_FOR_TEST)
+        test_env_obj.create_env_for_test()
+        test_object = IncludeOverseer(ROOT_DIR_FOR_TEST + MODULE_FOR_TEST + MODULE_NAME_HPP, ROOT_DIR_FOR_TEST + PROJECT_PATH)
+        test_object.parse_all()
+        include_path_found_list = test_object.get_headers_for_stub()
+        for include_found_item in include_path_found_list:
+            status = test_env_obj.is_file_include_path_exists(include_found_item)
+            self.assertEqual(status, True)
         
-        test_object.parse_all()
-        include_path_found = test_object.get_headers_for_stub()
-
-        self.assertEqual(len(include_path_found), len(exp_include_found_paths))
-        for includeFound in include_path_found:
-            for includeFound in exp_include_found_paths:
-                if includeFound in exp_include_found_paths:
-                    exp_include_found_paths.remove(includeFound)
-        self.assertEqual(len(exp_include_found_paths), 0)
-
-    def test_empty_files_to_parse(self):
-        test_object = IncludeOverseer(ROOT_DIR_FOR_TEST + "\\test\\Project_Bagno\\Test\\H2\\EmptyFile.hpp")
-        test_object.parse_all()
-        self.assertEqual(len(test_object.get_headers_for_stub()), 0)
+        test_env_obj.remove_all()
 
         
 

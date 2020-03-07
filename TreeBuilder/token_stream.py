@@ -40,42 +40,30 @@ class TokenStream:
     def current_content(self):
         return self.current_token.content
 
-    def get_token_content_from_left(self):
-        assert (self.backward())
-        identifier = self.current_content()
-        self.forward()
-        return identifier
+    def right_token(self, how_far=1):
+        saved_position = self.current_index
+        while how_far > 0:
+            assert (self.forward())
+            how_far -= 1
+        tok = self.current_token
+        self.current_index = saved_position
+        return tok
 
-    def get_token_kind_from_right(self):
-        assert (self.forward())
-        kind = self.current_kind()
-        self.backward()
-        return kind
+    def left_token(self, how_far=1):
+        saved_position = self.current_index
+        while how_far > 0:
+            assert (self.backward())
+            how_far -= 1
+        tok = self.current_token
+        self.current_index = saved_position
+        return tok
 
-    def get_token_kind_from_left(self):
-        assert (self.backward())
-        kind = self.current_kind()
-        self.forward()
-        return kind
-
-    def get_all_valid_forward_tokens(self, not_valid_token_types):
-        if not isinstance(not_valid_token_types, list):
-            raise Exception("List expected.")
-
-        if len(not_valid_token_types) == 0:
-            raise Exception("No arguments given.")
-
-        starting_position = self.current_index
-
+    def copy_forward(self, not_valid_token_types):
         result = []
-
         while self.forward():
             if self.current_kind() in not_valid_token_types:
                 break
             result.append(self.current_token)
-
-        self.current_index = starting_position
-
         return result
 
     def get_all_valid_forward_tokens_using_regexp(self, re_pattern):
@@ -91,7 +79,16 @@ class TokenStream:
 
         return res
 
-    def move_forward_to_token_type(self, token_type):
+    def move_forward(self, token_type):
         while self.current_kind() != token_type:
             assert (self.forward())
+
+    def copy_forward_if(self, predicate):
+        copied = []
+        while predicate(self.current_token) is True:
+            copied.append(self.current_token)
+            assert self.forward()
+        return copied
+
+
 

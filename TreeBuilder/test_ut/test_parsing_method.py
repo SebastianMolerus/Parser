@@ -10,14 +10,14 @@ from mock import Mock
 def test_token_from_left_is_not_identifier():
     token_stream = Mock()
     token_stream.current_kind.return_value = TokenType.params_begin_
-    token_stream.get_token_kind_from_left.return_value = TokenType.typedef_
+    token_stream.left_token.return_value = TokenType.typedef_
 
     with pytest.raises(Exception):
         parse_method(token_stream)
 
     assert len(token_stream.mock_calls) == 2
     assert token_stream.current_kind.call_count == 1
-    assert token_stream.get_token_kind_from_left.call_count == 1
+    assert token_stream.left_token.call_count == 1
 
 
 def test_const_is_part_of_method():
@@ -26,7 +26,7 @@ def test_const_is_part_of_method():
        ''')
     ts = TokenStream(tr)
     ts.forward()
-    ts.move_forward_to_token_type(token_type=TokenType.params_begin_)
+    ts.move_forward(token_type=TokenType.params_begin_)
 
     parsed_method = parse_method(ts)
 
@@ -41,7 +41,7 @@ def test_virtual_in_return_part_not_part_of_method():
        ''')
     ts = TokenStream(tr)
     ts.forward()
-    ts.move_forward_to_token_type(token_type=TokenType.params_begin_)
+    ts.move_forward(token_type=TokenType.params_begin_)
 
     parsed_method = parse_method(ts)
 
@@ -56,7 +56,7 @@ def test_pure_virtual_is_not_valid():
        ''')
     ts = TokenStream(tr)
     ts.forward()
-    ts.move_forward_to_token_type(token_type=TokenType.params_begin_)
+    ts.move_forward(token_type=TokenType.params_begin_)
 
     assert parse_method(ts) is None
 
@@ -68,7 +68,7 @@ def test_implemented_method_is_not_valid():
        ''')
     ts = TokenStream(tr)
     ts.forward()
-    ts.move_forward_to_token_type(token_type=TokenType.params_begin_)
+    ts.move_forward(token_type=TokenType.params_begin_)
 
     assert parse_method(ts) is None
 
@@ -79,7 +79,7 @@ def test_checking_method_expr_fields():
        ''')
     ts = TokenStream(tr)
     ts.forward()
-    ts.move_forward_to_token_type(token_type=TokenType.params_begin_)
+    ts.move_forward(token_type=TokenType.params_begin_)
 
     parsed_method = parse_method(ts)
 

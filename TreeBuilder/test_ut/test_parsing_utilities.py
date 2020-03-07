@@ -33,7 +33,7 @@ class TestGetReturnPartAsTokensSuite:
 
         ts = TokenStream(tr)
         ts.forward()
-        ts.move_forward_to_token_type(token_type=TokenType.params_begin_)
+        ts.move_forward(token_type=TokenType.params_begin_)
         ts.backward()
 
         return_tokens = get_return_part_as_tokens(ts)
@@ -55,7 +55,7 @@ class TestGetReturnPartAsTokensSuite:
 
         ts = TokenStream(tr)
         ts.forward()
-        ts.move_forward_to_token_type(token_type=TokenType.params_begin_)
+        ts.move_forward(token_type=TokenType.params_begin_)
         ts.backward()
 
         return_tokens = get_return_part_as_tokens(ts)
@@ -122,7 +122,7 @@ class TestGetReturnPartAsTokensSuite:
 
         ts = TokenStream(tr)
         ts.forward()
-        ts.move_forward_to_token_type(token_type=TokenType.params_begin_)
+        ts.move_forward(token_type=TokenType.params_begin_)
         ts.backward()
 
         return_tokens = get_return_part_as_tokens(ts)
@@ -138,7 +138,7 @@ class TestGetReturnPartAsTokensSuite:
 
         ts = TokenStream(tr)
         ts.forward()
-        ts.move_forward_to_token_type(token_type=TokenType.params_begin_)
+        ts.move_forward(token_type=TokenType.params_begin_)
         ts.backward()
 
         return_tokens = get_return_part_as_tokens(ts)
@@ -166,7 +166,7 @@ class TestGetReturnPartAsTokensSuite:
 
         ts = TokenStream(tr)
         ts.forward()
-        ts.move_forward_to_token_type(token_type=TokenType.params_begin_)
+        ts.move_forward(token_type=TokenType.params_begin_)
         ts.backward()
 
         return_tokens = get_return_part_as_tokens(ts)
@@ -188,7 +188,7 @@ class TestGetReturnPartAsTokensSuite:
 
         ts = TokenStream(tr)
         ts.forward()
-        ts.move_forward_to_token_type(token_type=TokenType.params_begin_)
+        ts.move_forward(token_type=TokenType.params_begin_)
 
         saved_token = ts.current_token
         assert len(get_return_part_as_tokens(ts)) > 0

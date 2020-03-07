@@ -103,8 +103,8 @@ def test_token_from_left():
     current_token = ts.current_token
 
     assert current_token.content == 'C'
-    assert ts.get_token_content_from_left() == 'operator'
-    assert ts.get_token_kind_from_left() == TokenType.operator_
+    assert ts.left_token().content == 'operator'
+    assert ts.left_token().kind == TokenType.operator_
     assert current_token is ts.current_token
 
 
@@ -114,7 +114,7 @@ def test_token_content_from_left_no_tokens():
     ts = TokenStream(tr)
 
     with pytest.raises(Exception):
-        ts.get_token_content_from_left()
+        ts.left_token()
 
 
 def test_token_kind_from_left_no_tokens():
@@ -123,7 +123,7 @@ def test_token_kind_from_left_no_tokens():
     ts = TokenStream(tr)
 
     with pytest.raises(Exception):
-        ts.get_token_kind_from_left()
+        ts.left_token()
 
 
 def test_token_kind_from_right():
@@ -138,7 +138,7 @@ def test_token_kind_from_right():
     current_token = ts.current_token
 
     assert current_token.content == 'C'
-    assert ts.get_token_kind_from_right() == TokenType.namespace_
+    assert ts.right_token().kind == TokenType.namespace_
     assert current_token is ts.current_token
 
 
@@ -148,7 +148,7 @@ def test_moving_till_given_token():
     ts = TokenStream(tr)
     ts.forward()
 
-    ts.move_forward_to_token_type(TokenType.class_)
+    ts.move_forward(TokenType.class_)
 
     assert ts.current_kind() == TokenType.class_
 
@@ -159,7 +159,7 @@ def test_moving_till_given_token_but_already_on_this_token():
     ts = TokenStream(tr)
     ts.forward()
 
-    ts.move_forward_to_token_type(TokenType.identifier_)
+    ts.move_forward(TokenType.identifier_)
 
     assert ts.current_content() == 'A'
 
@@ -171,7 +171,7 @@ def test_getting_valid_tokens_no_stop_token_given():
     ts.forward()
 
     with pytest.raises(Exception):
-        tokens = ts.get_all_valid_forward_tokens()
+        tokens = ts.copy_forward()
 
 
 def test_getting_valid_tokens():
@@ -182,7 +182,7 @@ def test_getting_valid_tokens():
 
     assert ts.current_content() == 'A'
 
-    tokens = ts.get_all_valid_forward_tokens([TokenType.operator_, TokenType.class_])
+    tokens = ts.copy_forward([TokenType.operator_, TokenType.class_])
 
     assert len(tokens) == 3
     assert tokens[0] == Token(TokenType.identifier_, 'B')
@@ -207,3 +207,13 @@ def test_getting_valid_tokens_using_regex(token_mark):
 
     assert str == "foo{}".format(token_mark)
     assert ts.current_kind() == TokenType.params_begin_
+
+
+# def test_copy_forward_if():
+#     tr = TokenReader(source_code="bar foo()()")
+#
+#     ts = TokenStream(tr)
+#     ts.forward()
+#     ts.forward()
+#
+#     tokens = ts.copy_forward_if(lambda token : token.get_)

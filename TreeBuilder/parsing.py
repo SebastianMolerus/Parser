@@ -1,3 +1,5 @@
+import re
+
 from TreeBuilder.expressions import ClassExpression, NamespaceExpression, CTorExpression, MethodExpression, \
     DTorExpression, OperatorExpression
 from TreeBuilder.parsing_utilities import format_return_part_as_string, format_method_parameters_as_string, \
@@ -94,8 +96,17 @@ def parse_params(token_stream, expression_context=None):
 def parse_method(token_stream):
     assert token_stream.current_kind() == TokenType.params_begin_
     assert token_stream.get_token_kind_from_left() == TokenType.identifier_
+
     method_name = token_stream.get_token_content_from_left()
+
+    token_stream.backward()
+    # at method identifier
+
     method_return_part_as_string = format_return_part_as_string(token_stream)
+
+    token_stream.forward()
+    # at params begin
+
     method_parameters_as_string = format_method_parameters_as_string(token_stream)
     token_stream.move_forward_to_token_type(TokenType.params_end_)
     after_method_parameters_tokens = \
@@ -167,16 +178,17 @@ def parse_operator(token_stream, expression_context):
     if expression_context.get_current_scope() != TokenType.public_:
         return None
 
-    token_stream.forward()
-
-    operator_name = ''
-    while token_stream.current_kind() != TokenType.params_begin_:
-        operator_name += token_stream.current_content()
-        token_stream.forward()
-
     operator_return_tokens = get_return_part_as_tokens(token_stream)
-    del operator_return_tokens[-1]
     return_pars_as_str = convert_param_tokens_to_string(operator_return_tokens)
+
+    assert token_stream.current_kind() == TokenType.operator_
+
+    operator_name = 'operator'
+    tokens = token_stream.get_all_valid_forward_tokens_using_regexp(re.compile(".+\("))
+    for tok in tokens:
+        operator_name += tok.content
+
+    assert token_stream.current_kind() == TokenType.params_begin_
 
     operator_params_tokens = token_stream.get_all_valid_forward_tokens(not_valid_token_types=[TokenType.params_end_])
     str_params = convert_param_tokens_to_string(operator_params_tokens)

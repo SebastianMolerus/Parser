@@ -16,24 +16,25 @@ def get_all_tokens(source_code):
 
 
 class TestGetReturnPartAsTokensSuite:
-    def test_not_on_params_begin(self):
-        token_stream = Mock()
-        token_stream.current_kind.return_value = TokenType.params_end_
-
-        with pytest.raises(Exception):
-            get_return_part_as_tokens(token_stream)
-
-        assert token_stream.current_kind.call_count == 1
-        assert len(token_stream.mock_calls) == 1
+    # def test_not_on_params_begin(self):
+    #     token_stream = Mock()
+    #     token_stream.current_kind.return_value = TokenType.params_end_
+    #
+    #     with pytest.raises(Exception):
+    #         get_return_part_as_tokens(token_stream)
+    #
+    #     assert token_stream.current_kind.call_count == 1
+    #     assert len(token_stream.mock_calls) == 1
 
     def test_with_semicolon_as_stop(self):
         tr = TokenReader(source_code='''
-        ;const A* Foo(
+        ;const A* foo(
         ''')
 
         ts = TokenStream(tr)
         ts.forward()
         ts.move_forward_to_token_type(token_type=TokenType.params_begin_)
+        ts.backward()
 
         return_tokens = get_return_part_as_tokens(ts)
 
@@ -49,12 +50,13 @@ class TestGetReturnPartAsTokensSuite:
 
     def test_with_no_stop_token(self):
         tr = TokenReader(source_code='''
-        Bar& const Foo(
+        Bar& const foo(
         ''')
 
         ts = TokenStream(tr)
         ts.forward()
         ts.move_forward_to_token_type(token_type=TokenType.params_begin_)
+        ts.backward()
 
         return_tokens = get_return_part_as_tokens(ts)
 
@@ -68,50 +70,50 @@ class TestGetReturnPartAsTokensSuite:
         assert return_tokens[2].content == 'const'
         assert return_tokens[2].kind == TokenType.const_
 
-    def test_no_backward_tokens(self):
-        token_stream = Mock()
-        token_stream.current_kind.return_value = TokenType.params_begin_
-        token_stream.backward.return_value = False
+    # def test_no_backward_tokens(self):
+    #     token_stream = Mock()
+    #     token_stream.current_kind.return_value = TokenType.params_begin_
+    #     token_stream.backward.return_value = False
+    #
+    #     with pytest.raises(Exception):
+    #         get_return_part_as_tokens(token_stream)
+    #
+    #     assert len(token_stream.mock_calls) == 2
+    #     assert token_stream.current_kind.call_count == 1
+    #     assert token_stream.backward.call_count == 1
 
-        with pytest.raises(Exception):
-            get_return_part_as_tokens(token_stream)
+    def test_opening_bracket_as_end_barrier(self):
+        token_stream = Mock()
+        token_stream.current_kind.return_value = TokenType.opening_bracket_
+        token_stream.backward.return_value = True
+
+        assert len(get_return_part_as_tokens(token_stream)) == 0
 
         assert len(token_stream.mock_calls) == 2
         assert token_stream.current_kind.call_count == 1
         assert token_stream.backward.call_count == 1
 
-    def test_opening_bracket_as_end_barrier(self):
-        token_stream = Mock()
-        token_stream.current_kind.side_effect = [TokenType.params_begin_, TokenType.opening_bracket_]
-        token_stream.backward.return_value = True
-
-        assert len(get_return_part_as_tokens(token_stream)) == 0
-
-        assert len(token_stream.mock_calls) == 4
-        assert token_stream.current_kind.call_count == 2
-        assert token_stream.backward.call_count == 2
-
     def test_closing_bracket_as_end_barrier(self):
         token_stream = Mock()
-        token_stream.current_kind.side_effect = [TokenType.params_begin_, TokenType.closing_bracket_]
+        token_stream.current_kind.return_value = TokenType.closing_bracket_
         token_stream.backward.return_value = True
 
         assert len(get_return_part_as_tokens(token_stream)) == 0
 
-        assert len(token_stream.mock_calls) == 4
-        assert token_stream.current_kind.call_count == 2
-        assert token_stream.backward.call_count == 2
+        assert len(token_stream.mock_calls) == 2
+        assert token_stream.current_kind.call_count == 1
+        assert token_stream.backward.call_count == 1
 
     def test_semicolon_as_end_barrier(self):
         token_stream = Mock()
-        token_stream.current_kind.side_effect = [TokenType.params_begin_, TokenType.semicolon_]
+        token_stream.current_kind.return_value = TokenType.semicolon_
         token_stream.backward.return_value = True
 
         assert len(get_return_part_as_tokens(token_stream)) == 0
 
-        assert len(token_stream.mock_calls) == 4
-        assert token_stream.current_kind.call_count == 2
-        assert token_stream.backward.call_count == 2
+        assert len(token_stream.mock_calls) == 2
+        assert token_stream.current_kind.call_count == 1
+        assert token_stream.backward.call_count == 1
 
     def test_scope_token_is_end_barrier(self):
         tr = TokenReader(source_code='''
@@ -121,6 +123,7 @@ class TestGetReturnPartAsTokensSuite:
         ts = TokenStream(tr)
         ts.forward()
         ts.move_forward_to_token_type(token_type=TokenType.params_begin_)
+        ts.backward()
 
         return_tokens = get_return_part_as_tokens(ts)
 
@@ -136,6 +139,7 @@ class TestGetReturnPartAsTokensSuite:
         ts = TokenStream(tr)
         ts.forward()
         ts.move_forward_to_token_type(token_type=TokenType.params_begin_)
+        ts.backward()
 
         return_tokens = get_return_part_as_tokens(ts)
 
@@ -163,6 +167,7 @@ class TestGetReturnPartAsTokensSuite:
         ts = TokenStream(tr)
         ts.forward()
         ts.move_forward_to_token_type(token_type=TokenType.params_begin_)
+        ts.backward()
 
         return_tokens = get_return_part_as_tokens(ts)
 

@@ -2,16 +2,12 @@ from TreeBuilder.tok import TokenType
 
 
 def get_return_part_as_tokens(token_stream):
-    assert token_stream.current_kind() == TokenType.params_begin_
-
     stop_parsing_tokens = [TokenType.opening_bracket_,
                            TokenType.closing_bracket_,
                            TokenType.semicolon_]
 
     # save position
     starting_position = token_stream.current_index
-
-    assert (token_stream.backward())
     result = []
 
     while token_stream.backward():

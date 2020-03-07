@@ -7,17 +7,6 @@ from TreeBuilder.token_stream import TokenStream
 from mock import Mock
 
 
-def test_beginning_not_on_params_begin():
-    token_stream = Mock()
-    token_stream.return_value.current_kind.return_value == TokenType.params_end_
-
-    with pytest.raises(Exception):
-        parse_method(token_stream)
-
-    assert len(token_stream.mock_calls) == 1
-    assert token_stream.current_kind.call_count == 1
-
-
 def test_token_from_left_is_not_identifier():
     token_stream = Mock()
     token_stream.current_kind.return_value = TokenType.params_begin_

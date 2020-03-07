@@ -1,3 +1,5 @@
+import re
+
 import pytest
 from TreeBuilder.tok import TokenType, Token
 from TreeBuilder.token_reader import TokenReader
@@ -187,3 +189,21 @@ def test_getting_valid_tokens():
     assert tokens[1] == Token(TokenType.identifier_, 'C')
     assert tokens[2] == Token(TokenType.namespace_)
 
+
+@pytest.mark.parametrize('token_mark',
+                         ['++', '--', '+=', '+', '-', '<<', '>>', '=', '[]', '->', '()', '*', '~', '<',
+                          '||', '->*', ',', '^=', '-='])
+def test_getting_valid_tokens_using_regex(token_mark):
+    tr = TokenReader(source_code="bar foo{}()".format(token_mark))
+
+    ts = TokenStream(tr)
+    ts.forward()
+
+    tokens = ts.get_all_valid_forward_tokens_using_regexp(re.compile("foo.+\("))
+
+    str = ''
+    for tok in tokens:
+        str += tok.content
+
+    assert str == "foo{}".format(token_mark)
+    assert ts.current_kind() == TokenType.params_begin_

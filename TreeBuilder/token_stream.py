@@ -1,3 +1,5 @@
+import re
+
 from tok import TokenType
 
 
@@ -75,6 +77,19 @@ class TokenStream:
         self.current_index = starting_position
 
         return result
+
+    def get_all_valid_forward_tokens_using_regexp(self, re_pattern):
+        txt = ''
+        res = []
+        while self.forward():
+            txt += self.current_content()
+            res.append(self.current_token)
+            x = re.search(re_pattern, txt)
+            if x is not None:
+                del res[-1]
+                break
+
+        return res
 
     def move_forward_to_token_type(self, token_type):
         while self.current_kind() != token_type:

@@ -1,17 +1,22 @@
 import unittest
-from TreeBuilder.atb import AbstractTreeBuilder
 from TreeBuilder.expressions import ClassExpression
 from TreeBuilder.expressions import OperatorExpression
+from TreeBuilder.parsing import build_ast
+from TreeBuilder.token_reader import TokenReader
+from TreeBuilder.token_stream import TokenStream
 
 
 class Test_AstOperator(unittest.TestCase):
     def test_OnePublicAssignOperator(self):
-        tree = AbstractTreeBuilder(source_code="""
+        tr = TokenReader(source_code="""
         class A{
             public:
             A& operator =( const A& x );
         };
-        """).build_ast()
+        """)
+        ts = TokenStream(tr)
+
+        tree = build_ast(ts)
 
         self.assertEqual(len(tree), 2)
         self.assertEqual(tree[0], ClassExpression('A'))
@@ -21,18 +26,21 @@ class Test_AstOperator(unittest.TestCase):
         self.assertEqual(tree[1].return_part, 'A&')
 
     def test_OnePrivateAssignOperator(self):
-        tree = AbstractTreeBuilder(source_code="""
+        tr = TokenReader(source_code="""
         class A{
             private:
             A& operator =( const A& x );
         };
-        """).build_ast()
+        """)
+        ts = TokenStream(tr)
+
+        tree = build_ast(ts)
 
         self.assertEqual(len(tree), 1)
         self.assertEqual(tree[0], ClassExpression('A'))
 
     def test_OnePublicImplementedAssignOperator(self):
-        tree = AbstractTreeBuilder(source_code="""
+        tr = TokenReader(source_code="""
         class A{
             public:
             A& operator =( const A& x )
@@ -43,19 +51,25 @@ class Test_AstOperator(unittest.TestCase):
             private:
             int bagno;
         };
-        """).build_ast()
+        """)
+        ts = TokenStream(tr)
+
+        tree = build_ast(ts)
 
         self.assertEqual(len(tree), 1)
         self.assertEqual(tree[0], ClassExpression('A'))
 
     def test_TwoDifferentPublicOperatoros(self):
-        tree = AbstractTreeBuilder(source_code="""
+        tr = TokenReader(source_code="""
         class A{
             public:
             A& operator = ( const A& x );
             A& operator + ( const A& bagno);
         };
-        """).build_ast()
+        """)
+        ts = TokenStream(tr)
+
+        tree = build_ast(ts)
 
         self.assertEqual(len(tree), 3)
         self.assertEqual(tree[0], ClassExpression('A'))
@@ -69,13 +83,17 @@ class Test_AstOperator(unittest.TestCase):
         self.assertEqual(tree[2].return_part, 'A&')
 
     def test_OnePublicOperatorWithLongNamespace(self):
-        tree = AbstractTreeBuilder(source_code="""
+        tr = TokenReader(source_code="""
         class A{
             public:
             A::B::C::D::E::F::G::H::I::J::K::L::M::N::O::P& operator =(const A::B::C::D::E:
             :F::G::H::I::J::K::L::M::N::O::P& x);
         };
-        """).build_ast()
+        """)
+        ts = TokenStream(tr)
+
+        tree = build_ast(ts)
+
         self.assertEqual(len(tree), 2)
         self.assertEqual(tree[0], ClassExpression('A'))
         self.assertTrue(isinstance(tree[1], OperatorExpression))
@@ -84,7 +102,7 @@ class Test_AstOperator(unittest.TestCase):
         self.assertEqual(tree[1].return_part, 'A::B::C::D::E::F::G::H::I::J::K::L::M::N::O::P&')
 
     def test_OnePublicOperatorWithGarbageComments(self):
-        tree = AbstractTreeBuilder(source_code="""
+        tr = TokenReader(source_code="""
         class A{
             //Public
             public:
@@ -104,7 +122,10 @@ class Test_AstOperator(unittest.TestCase):
                     A& operator * ( const A& bagno);
             */
         };
-        """).build_ast()
+        """)
+        ts = TokenStream(tr)
+
+        tree = build_ast(ts)
 
         self.assertEqual(len(tree), 2)
         self.assertEqual(tree[0], ClassExpression('A'))

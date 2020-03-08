@@ -1,7 +1,7 @@
 import re
 
 from TreeBuilder.expressions import ClassExpression, NamespaceExpression, CTorExpression, MethodExpression, \
-    DTorExpression, OperatorExpression
+    DTorExpression, OperatorExpression, Expression
 from TreeBuilder.parsing_utilities import convert_param_tokens_to_string, get_return_part_as_tokens
 from TreeBuilder.tok import TokenType, Token
 
@@ -182,7 +182,7 @@ def parse_operator(token_stream, expression_context):
 
     operator_name = ''
     tokens = token_stream.forward_copy_if(lambda stream: not (stream.current_content() == '('
-                                                              and stream.right_token(2).content != '('))
+                                          and stream.right_token(2).content != '('))
     for tok in tokens:
         operator_name += tok.content
 
@@ -220,3 +220,13 @@ def parse_expression(token_stream, expression_context=None):
 
     elif current_kind == TokenType.operator_:
         return parse_operator(token_stream, expression_context)
+
+
+def build_ast(token_stream):
+    ast_tree_root = Expression('Root')
+    while token_stream.forward():
+        expr = parse_expression(token_stream)
+        if expr is not None:
+            ast_tree_root.attach(expr)
+    return ast_tree_root
+

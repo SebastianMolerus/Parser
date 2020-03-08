@@ -1,19 +1,27 @@
 import unittest
-from TreeBuilder.atb import AbstractTreeBuilder
 from TreeBuilder.expressions import NamespaceExpression
 from TreeBuilder.expressions import ClassExpression
+from TreeBuilder.parsing import build_ast
+from TreeBuilder.token_reader import TokenReader
+from TreeBuilder.token_stream import TokenStream
 
 
 class Test_AstNamespace(unittest.TestCase):
 
     def test_OneSimpleNamespace(self):
-        tree = AbstractTreeBuilder(source_code=r"namespace N1{}").build_ast()
+        tr = TokenReader(source_code=r"namespace N1{}")
+        ts = TokenStream(tr)
+
+        tree = build_ast(ts)
 
         self.assertEqual(len(tree), 1)
         self.assertEqual(tree[0], NamespaceExpression('N1'))
 
     def test_NamespaceWithNestedClass(self):
-        tree = AbstractTreeBuilder(source_code=r"namespace N1{class C1{};};").build_ast()
+        tr = TokenReader(source_code=r"namespace N1{class C1{};};")
+        ts = TokenStream(tr)
+
+        tree = build_ast(ts)
 
         self.assertEqual(len(tree), 2)
         self.assertEqual(tree[0], NamespaceExpression('N1'))
@@ -21,11 +29,14 @@ class Test_AstNamespace(unittest.TestCase):
         self.assertEqual(tree[1].get_father(), tree[0])
 
     def test_NamespaceWithNestedNamespace(self):
-        tree = AbstractTreeBuilder(source_code="""
+        tr = TokenReader(source_code="""
         namespace N1{
             namespace N2{}
         }
-        """).build_ast()
+        """)
+        ts = TokenStream(tr)
+
+        tree = build_ast(ts)
 
         self.assertEqual(len(tree), 2)
         self.assertEqual(tree[0], NamespaceExpression('N1'))

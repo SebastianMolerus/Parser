@@ -26,7 +26,6 @@ class Test_AstNamespace(unittest.TestCase):
         self.assertEqual(len(tree), 2)
         self.assertEqual(tree[0], NamespaceExpression('N1'))
         self.assertEqual(tree[1], ClassExpression('C1'))
-        self.assertEqual(tree[1].get_father(), tree[0])
 
     def test_NamespaceWithNestedNamespace(self):
         tr = TokenReader(source_code="""

@@ -19,7 +19,7 @@ def test_empty_class():
 
     assert parsed_class.identifier == 'A'
     assert isinstance(parsed_class, ClassExpression)
-    assert len(parsed_class) == 0
+    assert len(parsed_class.children) == 0
 
 
 def test_not_identifier_token_after_class_keyword():
@@ -72,8 +72,8 @@ def test_class_with_child():
 
     assert parsed_class.identifier == 'A'
     assert isinstance(parsed_class, ClassExpression)
-    assert len(parsed_class) == 1
-    assert isinstance(parsed_class[0], MethodExpression)
+    assert len(parsed_class.children) == 1
+    assert isinstance(parsed_class.children[0], MethodExpression)
 
 
 def test_class_with_child_in_private_section():
@@ -89,7 +89,7 @@ def test_class_with_child_in_private_section():
 
     assert parsed_class.identifier == 'A'
     assert isinstance(parsed_class, ClassExpression)
-    assert len(parsed_class) == 0
+    assert len(parsed_class.children) == 0
 
 
 def test_class_with_child_in_private_section_but_with_friend():
@@ -106,6 +106,6 @@ def test_class_with_child_in_private_section_but_with_friend():
 
     assert parsed_class.identifier == 'A'
     assert isinstance(parsed_class, ClassExpression)
-    assert len(parsed_class) == 1
-    assert isinstance(parsed_class[0], MethodExpression)
+    assert len(parsed_class.children) == 1
+    assert isinstance(parsed_class.children[0], MethodExpression)
 

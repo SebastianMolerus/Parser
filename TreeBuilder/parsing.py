@@ -10,14 +10,12 @@ def parse_class(token_stream):
     assert token_stream.current_kind() == TokenType.class_
 
     token_stream.forward()
-
     assert token_stream.current_kind() == TokenType.identifier_
 
     parsed_class = ClassExpression(identifier=token_stream.current_content())
 
     token_stream.forward()
 
-    # forwarded class
     if token_stream.current_kind() == TokenType.semicolon_:
         return None
 
@@ -42,7 +40,7 @@ def add_child_expressions_into_class(parsed_class, token_stream):
         child_expr = parse_expression(token_stream, parsed_class)
         if child_expr is None:
             continue
-        parsed_class.attach(child_expr)
+        parsed_class.children.append(child_expr)
 
 
 def parse_namespace(token_stream):
@@ -61,10 +59,10 @@ def parse_namespace(token_stream):
         if token_stream.current_kind() == TokenType.closing_bracket_:
             break
 
-        expr = parse_expression(token_stream, parsed_namespace)
-        if expr is None:
+        child_expr = parse_expression(token_stream, parsed_namespace)
+        if child_expr is None:
             continue
-        parsed_namespace.attach(expr)
+        parsed_namespace.children.append(child_expr)
 
     return parsed_namespace
 
@@ -227,6 +225,6 @@ def build_ast(token_stream):
     while token_stream.forward():
         expr = parse_expression(token_stream)
         if expr is not None:
-            ast_tree_root.attach(expr)
+            ast_tree_root.children.append(expr)
     return ast_tree_root
 

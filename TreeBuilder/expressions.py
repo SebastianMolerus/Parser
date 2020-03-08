@@ -1,33 +1,45 @@
-from nodes import Node
 from token_reader import TokenType
 
 
-class Expression(object, Node):
+class Expression:
     def __init__(self, identifier):
         self.identifier = identifier
-        Node.__init__(self)
+        self.children = []
 
-    def print_all(self, indent = 0):
-
-        z = chr(192)        # \
-        m = chr(196) * 3    # ---
-        size_of_special_chars = len(z) + len(m)
-
-        s = (indent - (indent * size_of_special_chars)) * ' ' + str(type(self)) + self.identifier
-        for c in self.children:
-            s += '\n'
-            s += indent * ' '
-            s += z
-            s += m
-            s += c.print_all(indent + size_of_special_chars)
-        
-        return s
-
-    def __str__(self):
-        return self.print_all()
+    # def print_all(self, indent = 0):
+    #
+    #     z = chr(192)        # \
+    #     m = chr(196) * 3    # ---
+    #     size_of_special_chars = len(z) + len(m)
+    #
+    #     s = (indent - (indent * size_of_special_chars)) * ' ' + str(type(self)) + self.identifier
+    #     for c in self.children:
+    #         s += '\n'
+    #         s += indent * ' '
+    #         s += z
+    #         s += m
+    #         s += c.print_all(indent + size_of_special_chars)
+    #
+    #     return s
+    #
+    # def __str__(self):
+    #     return self.print_all()
 
     def __eq__(self, expr):
         return self.identifier == expr.identifier and isinstance(expr, type(self))
+
+    def __len__(self):
+        return len(self.__flat_list(self.children))
+
+    def __flat_list(self, orig_list):
+        f = []
+        for item in orig_list:
+            f.append(item)
+            f.extend(self.__flat_list(item.children))
+        return f
+
+    def __getitem__(self, item):
+        return self.__flat_list(self.children)[item]
 
     
 class ClassExpression(Expression):

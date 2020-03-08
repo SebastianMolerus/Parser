@@ -49,7 +49,7 @@ def test_namespace_without_children():
     ts.forward()
 
     parsed_namespace = parse_namespace(ts)
-    assert len(parsed_namespace) == 0
+    assert len(parsed_namespace.children) == 0
 
 
 def test_namespace_with_children():
@@ -62,5 +62,5 @@ def test_namespace_with_children():
     ts.forward()
 
     parsed_namespace = parse_namespace(ts)
-    assert len(parsed_namespace) == 1
+    assert len(parsed_namespace.children) == 1
 

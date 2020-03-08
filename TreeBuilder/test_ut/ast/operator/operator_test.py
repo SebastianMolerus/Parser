@@ -36,8 +36,8 @@ class Test_AstOperator(unittest.TestCase):
 
         tree = build_ast(ts)
 
-        self.assertEqual(len(tree), 1)
-        self.assertEqual(tree[0], ClassExpression('A'))
+        self.assertEqual(len(tree.children), 1)
+        self.assertEqual(tree.children[0], ClassExpression('A'))
 
     def test_OnePublicImplementedAssignOperator(self):
         tr = TokenReader(source_code="""

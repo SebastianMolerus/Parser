@@ -16,16 +16,6 @@ def get_all_tokens(source_code):
 
 
 class TestGetReturnPartAsTokensSuite:
-    # def test_not_on_params_begin(self):
-    #     token_stream = Mock()
-    #     token_stream.current_kind.return_value = TokenType.params_end_
-    #
-    #     with pytest.raises(Exception):
-    #         get_return_part_as_tokens(token_stream)
-    #
-    #     assert token_stream.current_kind.call_count == 1
-    #     assert len(token_stream.mock_calls) == 1
-
     def test_with_semicolon_as_stop(self):
         tr = TokenReader(source_code='''
         ;const A* foo(
@@ -33,7 +23,7 @@ class TestGetReturnPartAsTokensSuite:
 
         ts = TokenStream(tr)
         ts.forward()
-        ts.move_forward(token_type=TokenType.params_begin_)
+        ts.move_forward_to(token_type=TokenType.params_begin_)
         ts.backward()
 
         return_tokens = get_return_part_as_tokens(ts)
@@ -55,7 +45,7 @@ class TestGetReturnPartAsTokensSuite:
 
         ts = TokenStream(tr)
         ts.forward()
-        ts.move_forward(token_type=TokenType.params_begin_)
+        ts.move_forward_to(token_type=TokenType.params_begin_)
         ts.backward()
 
         return_tokens = get_return_part_as_tokens(ts)
@@ -69,18 +59,6 @@ class TestGetReturnPartAsTokensSuite:
 
         assert return_tokens[2].content == 'const'
         assert return_tokens[2].kind == TokenType.const_
-
-    # def test_no_backward_tokens(self):
-    #     token_stream = Mock()
-    #     token_stream.current_kind.return_value = TokenType.params_begin_
-    #     token_stream.backward.return_value = False
-    #
-    #     with pytest.raises(Exception):
-    #         get_return_part_as_tokens(token_stream)
-    #
-    #     assert len(token_stream.mock_calls) == 2
-    #     assert token_stream.current_kind.call_count == 1
-    #     assert token_stream.backward.call_count == 1
 
     def test_opening_bracket_as_end_barrier(self):
         token_stream = Mock()
@@ -122,7 +100,7 @@ class TestGetReturnPartAsTokensSuite:
 
         ts = TokenStream(tr)
         ts.forward()
-        ts.move_forward(token_type=TokenType.params_begin_)
+        ts.move_forward_to(token_type=TokenType.params_begin_)
         ts.backward()
 
         return_tokens = get_return_part_as_tokens(ts)
@@ -138,7 +116,7 @@ class TestGetReturnPartAsTokensSuite:
 
         ts = TokenStream(tr)
         ts.forward()
-        ts.move_forward(token_type=TokenType.params_begin_)
+        ts.move_forward_to(token_type=TokenType.params_begin_)
         ts.backward()
 
         return_tokens = get_return_part_as_tokens(ts)
@@ -166,7 +144,7 @@ class TestGetReturnPartAsTokensSuite:
 
         ts = TokenStream(tr)
         ts.forward()
-        ts.move_forward(token_type=TokenType.params_begin_)
+        ts.move_forward_to(token_type=TokenType.params_begin_)
         ts.backward()
 
         return_tokens = get_return_part_as_tokens(ts)
@@ -188,7 +166,7 @@ class TestGetReturnPartAsTokensSuite:
 
         ts = TokenStream(tr)
         ts.forward()
-        ts.move_forward(token_type=TokenType.params_begin_)
+        ts.move_forward_to(token_type=TokenType.params_begin_)
 
         saved_token = ts.current_token
         assert len(get_return_part_as_tokens(ts)) > 0

@@ -26,7 +26,7 @@ def test_const_is_part_of_method():
        ''')
     ts = TokenStream(tr)
     ts.forward()
-    ts.move_forward(token_type=TokenType.params_begin_)
+    ts.move_forward_to(token_type=TokenType.params_begin_)
 
     parsed_method = parse_method(ts)
 
@@ -41,7 +41,7 @@ def test_virtual_in_return_part_not_part_of_method():
        ''')
     ts = TokenStream(tr)
     ts.forward()
-    ts.move_forward(token_type=TokenType.params_begin_)
+    ts.move_forward_to(token_type=TokenType.params_begin_)
 
     parsed_method = parse_method(ts)
 
@@ -56,7 +56,7 @@ def test_pure_virtual_is_not_valid():
        ''')
     ts = TokenStream(tr)
     ts.forward()
-    ts.move_forward(token_type=TokenType.params_begin_)
+    ts.move_forward_to(token_type=TokenType.params_begin_)
 
     assert parse_method(ts) is None
 
@@ -68,7 +68,7 @@ def test_implemented_method_is_not_valid():
        ''')
     ts = TokenStream(tr)
     ts.forward()
-    ts.move_forward(token_type=TokenType.params_begin_)
+    ts.move_forward_to(token_type=TokenType.params_begin_)
 
     assert parse_method(ts) is None
 
@@ -79,7 +79,7 @@ def test_checking_method_expr_fields():
        ''')
     ts = TokenStream(tr)
     ts.forward()
-    ts.move_forward(token_type=TokenType.params_begin_)
+    ts.move_forward_to(token_type=TokenType.params_begin_)
 
     parsed_method = parse_method(ts)
 

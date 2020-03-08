@@ -4,18 +4,7 @@ from pproc import PreProcess
 
 
 class TokenReader:
-    """Class used for getting tokens from file or text. """
-
     def __init__(self, source_file=None, source_code=None, pre_process=None):
-        """ Initialize with file or text.
-
-        Args:
-            source_file:     path to file to read tokens from.
-
-            source_code:     string to read tokens from.
-
-        """
-
         self._identifier = ' '
         self._characters = []
 
@@ -52,13 +41,6 @@ class TokenReader:
                 break
 
     def get_next_token(self):
-
-        """Method used to get next token.
-        
-        Last returned Token type is _eof.
-                 
-        """
-
         self._identifier = ' '
 
         while self._identifier.isspace():

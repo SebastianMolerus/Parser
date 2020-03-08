@@ -36,7 +36,7 @@ def test_operator_identifier(operator_mark):
         '''.format(operator_mark))
     ts = TokenStream(tr)
     ts.forward()
-    ts.move_forward(token_type=TokenType.operator_)
+    ts.move_forward_to(token_type=TokenType.operator_)
 
     expr = ClassExpression("X")
     expr.set_scope(TokenType.public_)
@@ -56,7 +56,7 @@ def test_operator_return_part(operator_mark):
         '''.format(operator_mark))
     ts = TokenStream(tr)
     ts.forward()
-    ts.move_forward(token_type=TokenType.operator_)
+    ts.move_forward_to(token_type=TokenType.operator_)
 
     expr = ClassExpression("X")
     expr.set_scope(TokenType.public_)

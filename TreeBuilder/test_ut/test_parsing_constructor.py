@@ -11,7 +11,7 @@ def get_prepared_token_stream(source_code):
     tr = TokenReader(source_code=source_code)
     ts = TokenStream(tr)
     ts.forward()
-    ts.move_forward(TokenType.params_begin_)
+    ts.move_forward_to(TokenType.params_begin_)
     return ts
 
 

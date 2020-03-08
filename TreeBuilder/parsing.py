@@ -2,8 +2,7 @@ import re
 
 from TreeBuilder.expressions import ClassExpression, NamespaceExpression, CTorExpression, MethodExpression, \
     DTorExpression, OperatorExpression
-from TreeBuilder.parsing_utilities import format_return_part_as_string, format_method_parameters_as_string, \
-    convert_param_tokens_to_string, get_return_part_as_tokens
+from TreeBuilder.parsing_utilities import convert_param_tokens_to_string, get_return_part_as_tokens
 from TreeBuilder.tok import TokenType, Token
 
 
@@ -22,7 +21,7 @@ def parse_class(token_stream):
     if token_stream.current_kind() == TokenType.semicolon_:
         return None
 
-    token_stream.move_forward(TokenType.opening_bracket_)
+    token_stream.move_forward_to(TokenType.opening_bracket_)
 
     add_child_expressions_into_class(parsed_class, token_stream)
 
@@ -98,37 +97,35 @@ def parse_method(token_stream):
     assert token_stream.left_token().kind == TokenType.identifier_
 
     token_stream.backward()
-    # at method identifier
+    assert token_stream.current_kind() == TokenType.identifier_
 
-    # method name + return part
     method_name = token_stream.current_content()
-    return_part_as_string = format_return_part_as_string(token_stream)
 
-    token_stream.move_forward(TokenType.params_begin_)
+    return_part_tokens = get_return_part_as_tokens(token_stream)
+    return_part_string = convert_param_tokens_to_string(return_part_tokens)
 
-    parameters_as_string = format_method_parameters_as_string(token_stream)
-    # at params end
+    token_stream.move_forward_to(TokenType.params_begin_)
+    token_stream.forward()
+
+    parameters_tokens = token_stream.forward_copy_if(lambda ts: ts.current_kind() != TokenType.params_end_)
+    parameters_string = convert_param_tokens_to_string(parameters_tokens)
+    assert token_stream.current_kind() == TokenType.params_end_
 
     after_parameters_tokens = \
-        token_stream.copy_forward(not_valid_token_types=
-                                                  [TokenType.semicolon_, TokenType.opening_bracket_])
+        token_stream.forward_copy_if(lambda ts: ts.current_kind() != TokenType.semicolon_
+                                     and ts.current_kind() != TokenType.opening_bracket_)
 
     # Pure virtual
     if Token(TokenType.equal_) in after_parameters_tokens:
         return None
 
-    # Const method
-    is_const = False
-    if Token(TokenType.const_) in after_parameters_tokens:
-        is_const = True
-
     if token_stream.current_kind() == TokenType.semicolon_:
         return MethodExpression(identifier=method_name,
-                                parameters=parameters_as_string,
-                                return_part=return_part_as_string,
-                                is_const=is_const)
+                                parameters=parameters_string,
+                                return_part=return_part_string,
+                                is_const=Token(TokenType.const_) in after_parameters_tokens)
 
-    token_stream.move_forward(TokenType.closing_bracket_)
+    token_stream.move_forward_to(TokenType.closing_bracket_)
 
 
 def parse_constructor(token_stream, expression_context):
@@ -136,19 +133,21 @@ def parse_constructor(token_stream, expression_context):
     assert isinstance(expression_context, ClassExpression)
     constructor_identifier = expression_context.identifier
 
-    constructor_parameters_as_tokens = \
-        token_stream.copy_forward(not_valid_token_types=[TokenType.params_end_])
-
-    constructor_parameters_as_string = convert_param_tokens_to_string(constructor_parameters_as_tokens)
-
-    token_stream.move_forward(TokenType.params_end_)
-
     token_stream.forward()
+
+    parameters_tokens = \
+        token_stream.forward_copy_if(lambda stream: stream.current_kind() != TokenType.params_end_)
+
+    parameters_string = convert_param_tokens_to_string(parameters_tokens)
+
+    token_stream.move_forward_to(TokenType.params_end_)
+    token_stream.forward()
+
     if token_stream.current_kind() == TokenType.semicolon_:
         return CTorExpression(identifier=constructor_identifier,
-                              parameters=constructor_parameters_as_string)
+                              parameters=parameters_string)
     else:
-        token_stream.move_forward(TokenType.closing_bracket_)
+        token_stream.move_forward_to(TokenType.closing_bracket_)
 
 
 def parse_destructor(token_stream, expression_context):
@@ -160,14 +159,14 @@ def parse_destructor(token_stream, expression_context):
 
     destructor_identifier = expression_context.identifier
 
-    token_stream.move_forward(TokenType.params_end_)
+    token_stream.move_forward_to(TokenType.params_end_)
 
     token_stream.forward()
 
     if token_stream.current_kind() == TokenType.semicolon_:
         return DTorExpression(identifier=destructor_identifier)
     else:
-        token_stream.move_forward(TokenType.closing_bracket_)
+        token_stream.move_forward_to(TokenType.closing_bracket_)
 
 
 def parse_operator(token_stream, expression_context):
@@ -177,29 +176,31 @@ def parse_operator(token_stream, expression_context):
         return None
 
     operator_return_tokens = get_return_part_as_tokens(token_stream)
-    return_pars_as_str = convert_param_tokens_to_string(operator_return_tokens)
+    operator_return_tokens_as_str = convert_param_tokens_to_string(operator_return_tokens)
 
     assert token_stream.current_kind() == TokenType.operator_
 
-    operator_name = 'operator'
-    tokens = token_stream.get_all_valid_forward_tokens_using_regexp(re.compile(".+\("))
+    operator_name = ''
+    tokens = token_stream.forward_copy_if(lambda stream: not (stream.current_content() == '('
+                                                              and stream.right_token(2).content != '('))
     for tok in tokens:
         operator_name += tok.content
 
     assert token_stream.current_kind() == TokenType.params_begin_
+    token_stream.forward()
 
-    operator_params_tokens = token_stream.copy_forward(not_valid_token_types=[TokenType.params_end_])
+    operator_params_tokens = token_stream.forward_copy_if(lambda ts: ts.current_kind() != TokenType.params_end_)
     str_params = convert_param_tokens_to_string(operator_params_tokens)
 
-    token_stream.move_forward(TokenType.params_end_)
+    token_stream.move_forward_to(TokenType.params_end_)
 
     token_stream.forward()
     if token_stream.current_kind() == TokenType.semicolon_:
         return OperatorExpression(identifier=operator_name,
                                   parameters=str_params,
-                                  return_part=return_pars_as_str)
+                                  return_part=operator_return_tokens_as_str)
     else:
-        token_stream.move_forward(TokenType.closing_bracket_)
+        token_stream.move_forward_to(TokenType.closing_bracket_)
 
 
 def parse_expression(token_stream, expression_context=None):

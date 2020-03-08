@@ -47,15 +47,4 @@ def convert_param_tokens_to_string(param_tokens):
     return str_method_params
 
 
-def format_method_parameters_as_string(token_stream):
-    method_parameters_as_tokens = token_stream.copy_forward(not_valid_token_types=
-                                                                            [TokenType.params_end_])
-    return convert_param_tokens_to_string(method_parameters_as_tokens)
-
-
-def format_return_part_as_string(token_stream):
-    method_return_part_as_tokens = get_return_part_as_tokens(token_stream)
-    return convert_param_tokens_to_string(method_return_part_as_tokens)
-
-
 

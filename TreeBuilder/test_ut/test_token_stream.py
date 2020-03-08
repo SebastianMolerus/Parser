@@ -148,7 +148,7 @@ def test_moving_till_given_token():
     ts = TokenStream(tr)
     ts.forward()
 
-    ts.move_forward(TokenType.class_)
+    ts.move_forward_to(TokenType.class_)
 
     assert ts.current_kind() == TokenType.class_
 
@@ -159,7 +159,7 @@ def test_moving_till_given_token_but_already_on_this_token():
     ts = TokenStream(tr)
     ts.forward()
 
-    ts.move_forward(TokenType.identifier_)
+    ts.move_forward_to(TokenType.identifier_)
 
     assert ts.current_content() == 'A'
 
@@ -182,38 +182,59 @@ def test_getting_valid_tokens():
 
     assert ts.current_content() == 'A'
 
-    tokens = ts.copy_forward([TokenType.operator_, TokenType.class_])
+    tokens = ts.forward_copy_if(lambda steam:
+                                steam.current_kind() != TokenType.class_ and steam.current_kind() != TokenType.operator_)
 
-    assert len(tokens) == 3
-    assert tokens[0] == Token(TokenType.identifier_, 'B')
-    assert tokens[1] == Token(TokenType.identifier_, 'C')
-    assert tokens[2] == Token(TokenType.namespace_)
+    assert len(tokens) == 4
+    assert tokens[0] == Token(TokenType.identifier_, 'A')
+    assert tokens[1] == Token(TokenType.identifier_, 'B')
+    assert tokens[2] == Token(TokenType.identifier_, 'C')
+    assert tokens[3] == Token(TokenType.namespace_)
 
 
-@pytest.mark.parametrize('token_mark',
-                         ['++', '--', '+=', '+', '-', '<<', '>>', '=', '[]', '->', '()', '*', '~', '<',
-                          '||', '->*', ',', '^=', '-='])
-def test_getting_valid_tokens_using_regex(token_mark):
-    tr = TokenReader(source_code="bar foo{}()".format(token_mark))
+def test_right_token():
+    tr = TokenReader(source_code="(&*)const()int")
 
     ts = TokenStream(tr)
     ts.forward()
 
-    tokens = ts.get_all_valid_forward_tokens_using_regexp(re.compile("foo.+\("))
+    assert ts.right_token().content == '&'
+    assert ts.right_token(2).content == '*'
+    assert ts.right_token(3).content == ')'
+    assert ts.right_token(4).content == 'const'
+    assert ts.right_token(5).content == '('
+    assert ts.right_token(6).content == ')'
+    assert ts.right_token(7).content == 'int'
 
-    str = ''
-    for tok in tokens:
-        str += tok.content
 
-    assert str == "foo{}".format(token_mark)
-    assert ts.current_kind() == TokenType.params_begin_
+def test_left_token():
+    tr = TokenReader(source_code="int&*)const))(")
+
+    ts = TokenStream(tr)
+    ts.forward()
+    ts.move_forward_to(token_type=TokenType.params_begin_)
+
+    assert ts.left_token().content == ')'
+    assert ts.left_token(2).content == ')'
+    assert ts.left_token(3).content == 'const'
+    assert ts.left_token(4).content == ')'
+    assert ts.left_token(5).content == '*'
+    assert ts.left_token(6).content == '&'
+    assert ts.left_token(7).content == 'int'
 
 
-# def test_copy_forward_if():
-#     tr = TokenReader(source_code="bar foo()()")
-#
-#     ts = TokenStream(tr)
-#     ts.forward()
-#     ts.forward()
-#
-#     tokens = ts.copy_forward_if(lambda token : token.get_)
+def test_copy_forward_if():
+    tr = TokenReader(source_code="bar foo foobar()")
+
+    ts = TokenStream(tr)
+    ts.forward()
+
+    tokens = ts.forward_copy_if(lambda token_stream: token_stream.current_kind() == TokenType.identifier_)
+
+    assert len(tokens) == 3
+    assert tokens[0].content == 'bar'
+    assert tokens[1].content == 'foo'
+    assert tokens[2].content == 'foobar'
+
+
+

@@ -41,54 +41,20 @@ class TokenStream:
         return self.current_token.content
 
     def right_token(self, how_far=1):
-        saved_position = self.current_index
-        while how_far > 0:
-            assert (self.forward())
-            how_far -= 1
-        tok = self.current_token
-        self.current_index = saved_position
-        return tok
+        return self._cache[self.current_index + how_far]
 
     def left_token(self, how_far=1):
-        saved_position = self.current_index
-        while how_far > 0:
-            assert (self.backward())
-            how_far -= 1
-        tok = self.current_token
-        self.current_index = saved_position
-        return tok
+        return self._cache[self.current_index - how_far]
 
-    def copy_forward(self, not_valid_token_types):
-        result = []
-        while self.forward():
-            if self.current_kind() in not_valid_token_types:
-                break
-            result.append(self.current_token)
-        return result
-
-    def get_all_valid_forward_tokens_using_regexp(self, re_pattern):
-        txt = ''
-        res = []
-        while self.forward():
-            txt += self.current_content()
-            res.append(self.current_token)
-            x = re.search(re_pattern, txt)
-            if x is not None:
-                del res[-1]
-                break
-
-        return res
-
-    def move_forward(self, token_type):
+    def move_forward_to(self, token_type):
         while self.current_kind() != token_type:
             assert (self.forward())
 
-    def copy_forward_if(self, predicate):
+    def forward_copy_if(self, predicate):
         copied = []
-        while predicate(self.current_token) is True:
+        while predicate(self) is True:
             copied.append(self.current_token)
             assert self.forward()
         return copied
-
 
 

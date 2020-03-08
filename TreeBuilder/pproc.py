@@ -1,5 +1,4 @@
 class PreProcess:
-    
     def __init__(self, source):
         self._source = source
         self._single_line_comment = False

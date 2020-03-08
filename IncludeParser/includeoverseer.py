@@ -25,7 +25,7 @@ class IncludeOverseer:
 
             self._root_class_include_paths = self._headers_to_stub_list
         else:
-            print ("ERROR")
+            raise Exception("Error: File does not exist or wrog file type")
     
     def print_header_path_list(self):
         print "----------- HEADER LIST ----------- "
@@ -64,7 +64,6 @@ class IncludeOverseer:
     def _parse_includes(self, source_file_str):
         self._includeparser_obj.parse_content(source_file_str)
         return self._includeparser_obj.get_headers()
-
 
     def _pepare_root_includes_path(self):
         #OPEN HEADER FILE

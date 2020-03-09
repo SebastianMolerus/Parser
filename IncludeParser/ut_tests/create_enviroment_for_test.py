@@ -102,7 +102,7 @@ class EnvTestClass:
         for header_item in HEADER_ALL_FILE_LIST_2:
             f.write("#include " + "\"" + header_item + "\"\n")
         
-        f.write("\n#define TIME 1\n#define HELLO\nclass Test\n{\n Test();\n};")
+        f.write("\n#define TIME 1\n#define HELLO\nclass Module_1\n{\n Module_1();\n};")
         f.close()
 
         f = open(source_path_str, "w")
@@ -113,4 +113,6 @@ class EnvTestClass:
 
         for header_item in HEADER_ALL_FILE_LIST_4:
             f.write("#include " + "\"" + header_item + "\"\n")
+        
+        f.write("Module_1::Module_1()\n{\n 	//Default C-tor\n 	int *ptr = NULL;\n }\n Module_1::Module_1(int a) : m_a(a)\n {\n 	//int a 	\nint *ptr = &a; \n}\n Module_1::Module_1(int a, int b)\n : m_a(a), m_b(b)\n {\n 	//int a, int b 	\nint *ptr = &a;\n 	int *ptr2 = &b \n}")
         f.close()

@@ -11,36 +11,40 @@ class CtorImplementationParser:
 		self._code_str = read_all_from_file(file_path)
 
 	def get_ctor_implementation(self):
-		ctor_content = ""
+		self._ctor_implementation_str = ""
 		buf = StringIO.StringIO(self._code_str)
 		line = buf.readline()
 		while line:
 			if self._is_ctor(line):
-				ctor_content = self._cut_all_ctor_implementation(buf)
+				self._cut_all_ctor_implementation(buf)
 				break
 			line = buf.readline()
-		return ctor_content
+		return self._ctor_implementation_str
 	
 	def _is_ctor(self, line):
-		regex_ctor = self._ctor_name + r"\("+ self._ctor_params + r"\)"
+		regex_ctor = self._ctor_name + r"::" + self._ctor_name + r"\("+ self._ctor_params + r"\)"
 		copy_line = line.replace(" ", "")
 		result = re.match(regex_ctor, copy_line)
+		if result:
+			#CUT THE C-TOR DECLARATION
+			self._ctor_implementation_str = copy_line
+			self._ctor_implementation_str = self._ctor_implementation_str.replace(self._ctor_name + "::" + self._ctor_name + "("+ self._ctor_params + ")"," ")
+			#self._ctor_implementation_str = line
 		return result
 	
 	def _cut_all_ctor_implementation(self, buf):
 		regex = r"\s*}"
 		line = buf.readline()
-		ctor_content = ""
 		while line:
-			ctor_content += line
+			self._ctor_implementation_str  += line
 			is_found = re.match(regex, line)
 			if is_found:
 				break
 			line = buf.readline()
-		return ctor_content
 
 
-# obj_ctor = CTorExpression(identifier="TestClass", parameters="")
-# o = CtorImplementationParser("C:\\Users\piotr\Documents\\c.cpp", obj_ctor)
+# obj_ctor = CTorExpression(identifier="TestClass", parameters="int a")
+# o = CtorImplementationParser("C:\\Users\\PRybka\\Documents\\c.cpp", obj_ctor)
 # print o.get_ctor_implementation()
+# print o._ctor_implementation_str
 

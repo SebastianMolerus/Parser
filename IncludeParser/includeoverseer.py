@@ -1,21 +1,23 @@
+import re
+import os.path
 from filesearcher import FileSearcher
 from includeparser import IncludeParser
 from SystemModules.FileOpener.fileopener import read_all_from_file
-from SystemModules.RepoPath.repopath import RepoPath
-import re
-import os.path
 
 class IncludeOverseer:
     def __init__(self, path_to_header_class_file, project_path):
         self._repo_path = project_path
         self._header_class_path = ''
         self._source_class_path = ''
-        self._regex_header_pattern = r"([^\\]+)\.(h|hpp)$"      #r"^.*\.(h|hpp)$"
         self._includeparser_obj = IncludeParser()
-        self._file_includes_list = []
-        self._headers_to_stub_list = []
 
+        #includes parsed from root file
+        self._file_includes_list = [] 
+        
+        #includes paths from root file
         self._root_class_include_paths = []
+
+        self._headers_to_stub_list = []
 
         if self._is_file_exists_and_has_correct_header_file_type(path_to_header_class_file):
             self._header_class_path = path_to_header_class_file
@@ -94,7 +96,8 @@ class IncludeOverseer:
     def _is_file_exists_and_has_correct_header_file_type(self, path_to_header_class_file):
         if not os.path.isfile(path_to_header_class_file):
             return False
-        result = re.findall(self._regex_header_pattern, path_to_header_class_file)
+        regex_header_pattern = r"([^\\]+)\.(h|hpp)$"      #r"^.*\.(h|hpp)$"
+        result = re.findall(regex_header_pattern, path_to_header_class_file)
         self._class_for_test_file_name = ""
         if result:
             for match in result:

@@ -1,5 +1,3 @@
-import re
-
 import pytest
 from TreeBuilder.tok import TokenType, Token
 from TreeBuilder.token_reader import TokenReader

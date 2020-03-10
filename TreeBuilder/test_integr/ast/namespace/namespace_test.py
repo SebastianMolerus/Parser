@@ -40,3 +40,18 @@ class Test_AstNamespace(unittest.TestCase):
         self.assertEqual(len(tree), 2)
         self.assertEqual(tree[0], NamespaceExpression('N1'))
         self.assertEqual(tree[1], NamespaceExpression('N2'))
+
+    def test_two_namespaces(self):
+        tr = TokenReader(source_code="""
+        namespace N1{
+           
+        }
+        namespace n2{}
+        """)
+        ts = TokenStream(tr)
+
+        tree = build_ast(ts)
+
+        self.assertEqual(len(tree), 2)
+        self.assertEqual(tree[0], NamespaceExpression('N1'))
+        self.assertEqual(tree[1], NamespaceExpression('n2'))

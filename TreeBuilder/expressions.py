@@ -5,25 +5,29 @@ class Expression:
     def __init__(self, identifier):
         self.identifier = identifier
         self.children = []
+        self.father = None
 
-    # def print_all(self, indent = 0):
-    #
-    #     z = chr(192)        # \
-    #     m = chr(196) * 3    # ---
-    #     size_of_special_chars = len(z) + len(m)
-    #
-    #     s = (indent - (indent * size_of_special_chars)) * ' ' + str(type(self)) + self.identifier
-    #     for c in self.children:
-    #         s += '\n'
-    #         s += indent * ' '
-    #         s += z
-    #         s += m
-    #         s += c.print_all(indent + size_of_special_chars)
-    #
-    #     return s
-    #
-    # def __str__(self):
-    #     return self.print_all()
+    def print_all(self, indent=0):
+        z = chr(192)        # \
+        m = chr(196) * 3    # ---
+        size_of_special_chars = len(z) + len(m)
+
+        s = (indent - (indent * size_of_special_chars)) * ' ' + str(type(self)) + self.identifier
+        for c in self.children:
+            s += '\n'
+            s += indent * ' '
+            s += z
+            s += m
+            s += c.print_all(indent + size_of_special_chars)
+
+        return s
+
+    def __str__(self):
+        return self.print_all()
+
+    def add_child(self, child):
+        child.father = self
+        self.children.append(child)
 
     def __eq__(self, expr):
         return self.identifier == expr.identifier and isinstance(expr, type(self))
@@ -31,15 +35,15 @@ class Expression:
     def __len__(self):
         return len(self.__flat_list(self.children))
 
+    def __getitem__(self, item):
+        return self.__flat_list(self.children)[item]
+
     def __flat_list(self, orig_list):
         f = []
         for item in orig_list:
             f.append(item)
             f.extend(self.__flat_list(item.children))
         return f
-
-    def __getitem__(self, item):
-        return self.__flat_list(self.children)[item]
 
     
 class ClassExpression(Expression):
@@ -96,3 +100,9 @@ class OperatorExpression(Expression):
         Expression.__init__(self, identifier)
         self.parameters = parameters
         self.return_part = return_part
+
+
+class FunctionExpression(Expression):
+    def __init__(self, identifier, parameters, return_part):
+        Expression.__init__(self, identifier)
+        self.parameters = parameters

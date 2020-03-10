@@ -1,18 +1,17 @@
-import re
-
 from TreeBuilder.expressions import ClassExpression, NamespaceExpression, CTorExpression, MethodExpression, \
     DTorExpression, OperatorExpression, Expression
 from TreeBuilder.parsing_utilities import convert_param_tokens_to_string, get_return_part_as_tokens
 from TreeBuilder.tok import TokenType, Token
 
 
-def parse_class(token_stream):
+def parse_class(token_stream, expression_context=None):
     assert token_stream.current_kind() == TokenType.class_
 
     token_stream.forward()
     assert token_stream.current_kind() == TokenType.identifier_
 
     parsed_class = ClassExpression(identifier=token_stream.current_content())
+    parsed_class.father = expression_context
 
     token_stream.forward()
 
@@ -40,21 +39,26 @@ def add_child_expressions_into_class(parsed_class, token_stream):
         child_expr = parse_expression(token_stream, parsed_class)
         if child_expr is None:
             continue
-        parsed_class.children.append(child_expr)
+        parsed_class.add_child(child_expr)
 
 
-def parse_namespace(token_stream):
+def parse_namespace(token_stream, expression_context=None):
     assert token_stream.current_kind() == TokenType.namespace_
     token_stream.forward()
 
     assert token_stream.current_kind() == TokenType.identifier_
 
     parsed_namespace = NamespaceExpression(token_stream.current_content())
+    parsed_namespace.father = expression_context
 
     token_stream.forward()
 
     assert token_stream.current_kind() == TokenType.opening_bracket_
 
+    return add_child_expressions_into_namespace(parsed_namespace, token_stream)
+
+
+def add_child_expressions_into_namespace(parsed_namespace, token_stream):
     while token_stream.forward():
         if token_stream.current_kind() == TokenType.closing_bracket_:
             break
@@ -62,32 +66,60 @@ def parse_namespace(token_stream):
         child_expr = parse_expression(token_stream, parsed_namespace)
         if child_expr is None:
             continue
-        parsed_namespace.children.append(child_expr)
-
+        parsed_namespace.add_child(child_expr)
     return parsed_namespace
 
 
 def is_method(token_stream, expression_context):
-    return token_stream.left_token().kind == TokenType.identifier_ and\
-        token_stream.left_token().content != expression_context.identifier and\
-        (expression_context.get_current_scope() == TokenType.public_ or expression_context.is_friend_inside())
+    return \
+        token_stream.left_token().kind == TokenType.identifier_ and \
+        token_stream.left_token().content != expression_context.identifier and \
+        (expression_context.is_friend_inside() or
+         (expression_context.get_current_scope() == TokenType.public_ or
+         expression_context.get_current_scope() == TokenType.protected_))
 
 
 def is_constructor(token_stream, expression_context):
-    return isinstance(expression_context, ClassExpression) and\
-           token_stream.left_token().content == expression_context.identifier and\
-           (expression_context.get_current_scope() == TokenType.public_ or expression_context.is_friend_inside())
+    return \
+           token_stream.left_token().content == expression_context.identifier and \
+           (expression_context.is_friend_inside() or
+            expression_context.get_current_scope() == TokenType.public_)
 
 
-def parse_params(token_stream, expression_context=None):
+def root_or_namespace_context(expression_context):
+    return expression_context.identifier == 'Root' or isinstance(expression_context, NamespaceExpression)
 
-    if expression_context is None:
+
+def parse_function(token_stream, expression_context):
+    pass
+
+
+def remove_method(token_stream, expression_context):
+    if token_stream.left_token(2).kind != TokenType.colon_:
+        return False
+
+
+def decide_impl_method_or_function(token_stream, expression_context):
+    if token_stream.left_token().kind != TokenType.identifier_:
         return None
 
-    if is_method(token_stream, expression_context):
-        return parse_method(token_stream)
-    elif is_constructor(token_stream, expression_context):
-        return parse_constructor(token_stream, expression_context)
+    if remove_method(token_stream, expression_context):
+        return None
+
+    return parse_function(token_stream, expression_context)
+
+
+def parse_params(token_stream, expression_context):
+    assert token_stream.current_kind() == TokenType.params_begin_
+
+    if root_or_namespace_context(expression_context):
+        return decide_impl_method_or_function(token_stream, expression_context)
+
+    elif isinstance(expression_context, ClassExpression):
+        if is_method(token_stream, expression_context):
+            return parse_method(token_stream)
+        elif is_constructor(token_stream, expression_context):
+            return parse_constructor(token_stream, expression_context)
 
 
 def parse_method(token_stream):
@@ -201,14 +233,14 @@ def parse_operator(token_stream, expression_context):
         token_stream.move_forward_to(TokenType.closing_bracket_)
 
 
-def parse_expression(token_stream, expression_context=None):
+def parse_expression(token_stream, expression_context):
     current_kind = token_stream.current_kind()
 
     if current_kind == TokenType.class_:
-        return parse_class(token_stream)
+        return parse_class(token_stream, expression_context)
 
     elif current_kind == TokenType.namespace_:
-        return parse_namespace(token_stream)
+        return parse_namespace(token_stream, expression_context)
 
     elif current_kind == TokenType.params_begin_:
         return parse_params(token_stream, expression_context)
@@ -223,8 +255,7 @@ def parse_expression(token_stream, expression_context=None):
 def build_ast(token_stream):
     ast_tree_root = Expression('Root')
     while token_stream.forward():
-        expr = parse_expression(token_stream)
+        expr = parse_expression(token_stream, ast_tree_root)
         if expr is not None:
-            ast_tree_root.children.append(expr)
+            ast_tree_root.add_child(expr)
     return ast_tree_root
-

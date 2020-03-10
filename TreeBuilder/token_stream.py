@@ -1,5 +1,3 @@
-import re
-
 from tok import TokenType
 
 

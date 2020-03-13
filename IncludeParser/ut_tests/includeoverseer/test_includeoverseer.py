@@ -15,9 +15,9 @@ class Test_IncludeOverseer(unittest.TestCase):
         test_env_obj = EnvTestClass(ROOT_DIR_FOR_TEST)
         test_env_obj.create_env_for_test()
         
-        test_object = IncludeOverseer(ROOT_DIR_FOR_TEST + MODULE_FOR_TEST + MODULE_NAME_HPP, ROOT_DIR_FOR_TEST + PROJECT_PATH)
+        test_object = IncludeOverseer(ROOT_DIR_FOR_TEST + PROJECT_PATH, ROOT_DIR_FOR_TEST + MODULE_FOR_TEST + MODULE_NAME_HPP, ROOT_DIR_FOR_TEST + MODULE_FOR_TEST + MODULE_NAME_CPP)
         test_object.parse_all()
-        include_path_found_list = test_object.get_headers_for_stub()
+        include_path_found_list = test_object.get_parsed_headers_for_stub()
         for include_found_item in include_path_found_list:
             status = test_env_obj.is_file_include_path_exists(include_found_item)
             self.assertEqual(status, True)

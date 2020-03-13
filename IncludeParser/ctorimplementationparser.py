@@ -43,8 +43,8 @@ class CtorImplementationParser:
 			line = buf.readline()
 
 
-# obj_ctor = CTorExpression(identifier="TestClass", parameters="int a")
-# o = CtorImplementationParser("C:\\Users\\PRybka\\Documents\\c.cpp", obj_ctor)
-# print o.get_ctor_implementation()
-# print o._ctor_implementation_str
+obj_ctor = CTorExpression(identifier="TestClass", parameters="int a, int b")
+o = CtorImplementationParser("C:\\Users\\PRybka\\Documents\\c.cpp", obj_ctor)
+print o.get_ctor_implementation()
+print o._ctor_implementation_str
 

@@ -23,6 +23,36 @@ class Test_IncludeOverseer(unittest.TestCase):
             self.assertEqual(status, True)
         
         test_env_obj.remove_all()
+    
+    def test_all_header_path_from_hpp_file(self):
+        test_env_obj = EnvTestClass(ROOT_DIR_FOR_TEST)
+        test_env_obj.create_env_for_test()
+
+        test_object = IncludeOverseer(ROOT_DIR_FOR_TEST + PROJECT_PATH, ROOT_DIR_FOR_TEST + MODULE_FOR_TEST + MODULE_NAME_HPP, None)
+        test_object.parse_all()
+        include_path_found_list = test_object.get_parsed_headers_for_stub()
+        for include_found_item in include_path_found_list:
+            status = test_env_obj.is_file_include_path_exists(include_found_item)
+            self.assertEqual(status, True)
+
+        test_env_obj.remove_all()
+    
+    def test_no_hpp_and_cpp_file(self):
+        test_env_obj = EnvTestClass(ROOT_DIR_FOR_TEST)
+        test_env_obj.create_env_for_test()
+
+        test_object = IncludeOverseer(ROOT_DIR_FOR_TEST + PROJECT_PATH, None, None)
+        test_object.parse_all()
+        include_path_found_list = test_object.get_parsed_headers_for_stub()
+
+        self.assertEqual(len(include_path_found_list), 0)
+
+        test_env_obj.remove_all()
+
+
+
+
+
 
         
 

@@ -2,7 +2,16 @@ import re
 import os.path
 
 def is_file_exists(file_path):
+    if file_path is None:
+        file_path = ""
     if not os.path.isfile(file_path):
+        return False
+    return True
+
+def is_dir_exists(dir_path):
+    if dir_path is None:
+        dir_path = ""
+    if not os.path.isdir(dir_path):
         return False
     return True
 

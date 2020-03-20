@@ -95,4 +95,3 @@ class IncludeOverseer:
                 header_file_name += "."
                 header_file_name += match[1]
         return header_file_name
-

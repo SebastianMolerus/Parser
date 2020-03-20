@@ -1,6 +1,5 @@
 import os
 
-
 class FileSearcher:
     def __init__(self, start_path):
         self._root_dir = start_path
@@ -18,4 +17,3 @@ class FileSearcher:
 
     def get_found_file_list(self):
         return self._found_file_list
-

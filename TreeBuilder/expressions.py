@@ -82,9 +82,10 @@ class MethodExpression(Expression):
 
 
 class CTorExpression(Expression):
-    def __init__(self, identifier, parameters):
+    def __init__(self, identifier, parameters, implementation = None):
         Expression.__init__(self, identifier)
         self.parameters = parameters
+        self.implementation = implementation
 
     def __eq__(self, expr):
         return Expression.__eq__(self, expr) and self.parameters == expr.parameters

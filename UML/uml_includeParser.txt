@@ -1,0 +1,27 @@
+@startuml
+
+title IncludeParser - Class Diagram
+
+
+class FileSearcher {
+  +find_file_path()
+  +get_found_file_list()
+}
+
+class IncludeParser {
+  +get_headers()
+  +get_system_headers()
+  +parse_content()
+}
+
+class IncludeOverseer {
+  +get_parsed_headers_for_stub()
+  +debug_print_parsed_header_path_list()
+  +parse_all()
+}
+
+
+IncludeOverseer *-- FileSearcher
+IncludeOverseer *-- IncludeParser
+
+@enduml

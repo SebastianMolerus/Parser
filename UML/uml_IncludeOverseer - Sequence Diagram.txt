@@ -1,0 +1,31 @@
+@startuml
+
+title "IncludeOverseer - Sequence Diagram"
+
+actor User
+
+User -> IncludeOverseer : create
+group Prepare root includes path
+IncludeOverseer -> FileOpener : Read all content from *.hpp and *cpp file
+IncludeOverseer -> IncludeParser : Parse Includes
+IncludeOverseer -> FileSearcher : Find header file path from parsed includes
+IncludeOverseer <- FileSearcher : Save to root_iteration_include_list
+end
+User -> IncludeOverseer : parse_all()
+
+loop thru root_iteration_include_list
+IncludeOverseer -> FileOpener : Read all from *.hpp file
+IncludeOverseer -> IncludeParser : Parse Includes
+IncludeOverseer -> FileSearcher : Find header file path from parsed includes
+IncludeOverseer <- FileSearcher : Save to temp_file_path_include_list
+loop iteration thru temp_file_path_include_list
+IncludeOverseer -> FileOpener : Read all from *.hpp file
+IncludeOverseer -> IncludeParser : Parse Includes
+IncludeOverseer -> FileSearcher : Find header file path from parsed includes
+IncludeOverseer <- FileSearcher : Save to temp_file_path_include_list
+end
+end
+
+User -> IncludeOverseer : get_parsed_headers_for_stub()
+User <- IncludeOverseer : Return parsed headers path list
+@enduml

@@ -1,0 +1,35 @@
+@startuml
+
+title UT Parser - Component Diagram
+
+
+package "IncludeParser" {
+  [includeoverseer]
+  [includeparser]
+  [filesearcher]
+  [ctorimplementationparser]
+}
+
+
+package "SystemModules" {
+  [fileopener]
+  [filechecker]
+
+}
+
+package "TreeBuilder" {
+  [expressions]
+  [parsing_utilities]
+  [parsing]
+  [pproc]
+  [tok]
+  [token_reader]
+  [token_stream]
+}
+
+
+[includeoverseer] -down-> [includeparser]
+[includeoverseer] -> [filesearcher]
+[includeoverseer] -up-> [fileopener]
+[ctorimplementationparser] -> [fileopener]
+@enduml

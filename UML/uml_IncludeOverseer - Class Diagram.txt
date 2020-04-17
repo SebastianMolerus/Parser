@@ -1,6 +1,6 @@
 @startuml
 
-title IncludeParser - Class Diagram
+title IncludeOverseer - Class Diagram
 
 
 class FileSearcher {

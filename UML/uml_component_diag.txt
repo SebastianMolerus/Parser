@@ -1,9 +1,0 @@
-@startuml
-
-title UT Parser - Component Diagram
-
-[IncludeParser]
-[TreeBuilder]
-[SystemModules]
-
-@enduml
